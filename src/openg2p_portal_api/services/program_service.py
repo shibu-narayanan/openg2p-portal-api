@@ -1,9 +1,8 @@
-from typing import List
-
 from openg2p_fastapi_common.service import BaseService
 from sqlalchemy.orm import Session
 
 from ..models.program import ProgramList
+
 
 class ProgramService(BaseService):
     def __init__(self, **kwargs):

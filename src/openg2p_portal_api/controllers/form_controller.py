@@ -1,7 +1,6 @@
 from openg2p_fastapi_common.controller import BaseController
 
 from ..config import Settings
-
 from ..models.form import ProgramForm
 
 _config = Settings.get_config()

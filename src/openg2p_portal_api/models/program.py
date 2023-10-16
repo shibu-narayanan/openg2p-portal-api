@@ -3,8 +3,8 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
-class ProgramList(BaseModel):
-    model_config = ConfigDict(extra="allow")
+class Program(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
 
     id: Optional[int] = None
     name: Optional[str] = None
@@ -14,7 +14,3 @@ class ProgramList(BaseModel):
     is_portal_form_mapped: Optional[bool] = None
     last_application_status: Optional[str] = None
     is_multiple_form_submission: Optional[bool] = None
-
-
-    class Config:
-        orm_mode = True

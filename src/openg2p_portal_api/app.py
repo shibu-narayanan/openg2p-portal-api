@@ -6,8 +6,10 @@ _config = Settings.get_config()
 
 from openg2p_fastapi_common.app import Initializer
 
-from .controllers.program_controller import ProgramController
 from .controllers.form_controller import FormController
+from .controllers.program_controller import ProgramController
+
+
 class Initializer(Initializer):
     def initialize(self, **kwargs):
         super().initialize()

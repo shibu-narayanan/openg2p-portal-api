@@ -1,11 +1,9 @@
-from typing import Optional
-
 from openg2p_fastapi_common.config import Settings
 from pydantic_settings import SettingsConfigDict
 
 
 class Settings(Settings):
-    model_config = SettingsConfigDict(env_prefix="openg2p_portal_api")
+    model_config = SettingsConfigDict(env_prefix="portal_")
 
     openapi_title: str = "G2P Portal API"
     openapi_description: str = """
