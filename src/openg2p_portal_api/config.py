@@ -3,4 +3,6 @@ from pydantic_settings import SettingsConfigDict
 
 
 class Settings(Settings):
-    model_config = SettingsConfigDict(env_prefix="openg2p_portal_api", env_file=".env", extra="allow")
+    model_config = SettingsConfigDict(
+        env_prefix="openg2p_portal_api", env_file=".env", extra="allow"
+    )
