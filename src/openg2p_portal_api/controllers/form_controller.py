@@ -2,6 +2,7 @@ from openg2p_fastapi_common.controller import BaseController
 
 from ..config import Settings
 from ..models.form import ProgramForm
+from ..models.orm.formio_builder_orm import FormORM
 
 _config = Settings.get_config()
 
@@ -18,4 +19,9 @@ class FormController(BaseController):
         )
 
     async def get_program_form(self, programid: int):
-        return {"program1": programid}
+        res = await FormORM.get_program_form(programid)
+        if res:
+            return ProgramForm.model_validate(res)
+        else:
+            # TODO: Add error handling
+            pass
