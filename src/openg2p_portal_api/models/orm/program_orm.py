@@ -4,7 +4,7 @@ from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
 from sqlalchemy import Integer, String, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .program_membership_orm import ProgramMembershipORM
 
@@ -16,6 +16,8 @@ class ProgramORM(BaseORMModelWithId):
     description: Mapped[str] = mapped_column(String())
     self_service_portal_form: Mapped[int] = mapped_column(Integer())
     is_multiple_form_submission: Mapped[str] = mapped_column()
+
+    membership = relationship("ProgramMembershipORM", back_populates="program")
 
     # has_applied: Mapped[bool] = mapped_column()
     # last_application_status: Mapped[str] = mapped_column(String())

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, validator
 
@@ -9,6 +9,7 @@ class ProgramMembership(BaseModel):
     id: Optional[int] = None
     partner_id: Optional[int] = None
     latest_registrant_info_status: Optional[str] = None
+    program_id: Optional[int] = None
 
 
 class Program(BaseModel):
@@ -22,7 +23,7 @@ class Program(BaseModel):
     is_portal_form_mapped: Optional[bool] = None
     is_multiple_form_submission: Optional[bool] = None
 
-    program_membership_ids: Optional[List[ProgramMembership]] = []
+    # membership: Optional[List[ProgramMembership]] = []
 
     has_applied: Optional[bool] = None
     last_application_status: Optional[str] = None
