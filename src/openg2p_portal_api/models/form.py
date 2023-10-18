@@ -1,14 +1,14 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProgramForm(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(from_attributes=True)
 
+    form_id: Optional[int] = Field(default=None, alias="id")
+    json_schema: Optional[str] = Field(default=None, alias="schema")
     program_id: Optional[int] = None
-    form_id: Optional[int] = None
-    form_json: Optional[str] = None
     submission_data: Optional[str] = None
-    program_name: Optional[str] = None
-    program_description: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
