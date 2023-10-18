@@ -35,8 +35,10 @@ class FormController(BaseController):
     async def get_program_form(self, programid: int):
         response_dict = {}
         res = await ProgramORM.get_program_form(programid)
+        print(res)
         if res:
             form = res.form
+            print(form)
             if form:
                 response_dict = {
                     "id": form.id,
@@ -47,8 +49,14 @@ class FormController(BaseController):
                     "description": res.description,
                 }
             else:
-                # TODO:
-                pass
+                response_dict = {
+                    "id": None,
+                    "schema": None,
+                    "program_id": res.id,
+                    "submission_data": None,
+                    "name": res.name,
+                    "description": res.description,
+                }
             return ProgramForm(**response_dict)
         else:
             # TODO: Add error handling
