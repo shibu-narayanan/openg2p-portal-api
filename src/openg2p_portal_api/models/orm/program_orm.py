@@ -6,8 +6,6 @@ from sqlalchemy import ForeignKey, String, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
-# from .formio_builder_orm import FormORM
-
 
 class ProgramORM(BaseORMModelWithId):
     __tablename__ = "g2p_program"
