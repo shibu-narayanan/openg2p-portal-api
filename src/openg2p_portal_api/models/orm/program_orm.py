@@ -1,10 +1,13 @@
-from typing import List
+from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
 from sqlalchemy import ForeignKey, String, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
+
+from .formio_builder_orm import FormORM
+from .program_membership_orm import ProgramMembershipORM
 
 
 class ProgramORM(BaseORMModelWithId):
@@ -14,12 +17,14 @@ class ProgramORM(BaseORMModelWithId):
     description: Mapped[str] = mapped_column(String())
     is_multiple_form_submission: Mapped[str] = mapped_column()
 
-    membership = relationship("ProgramMembershipORM", back_populates="program")
+    membership: Mapped[Optional[List["ProgramMembershipORM"]]] = relationship(
+        back_populates="program"
+    )
 
     self_service_portal_form: Mapped[int] = mapped_column(
         ForeignKey("formio_builder.id")
     )
-    form = relationship("FormORM", back_populates="program")
+    form: Mapped[Optional[List["FormORM"]]] = relationship(back_populates="program")
 
     @classmethod
     async def get_all_programs(cls) -> List["ProgramORM"]:
