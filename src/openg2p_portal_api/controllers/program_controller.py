@@ -29,11 +29,12 @@ class ProgramController(BaseController):
 
     async def get_programs(self):
         return [
-            Program.model_validate(program) for program in await ProgramORM.get_all()
+            Program.model_validate(program)
+            for program in await ProgramORM.get_all_programs()
         ]
 
     async def get_program_by_id(self, programid: int):
-        res = await ProgramORM.get_by_id(programid)
+        res = await ProgramORM.get_all_by_program_id(programid)
         if res:
             return Program.model_validate(res)
         else:
