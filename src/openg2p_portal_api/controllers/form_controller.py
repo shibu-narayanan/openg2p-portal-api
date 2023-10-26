@@ -22,16 +22,16 @@ class FormController(BaseController):
 
         self.router.add_api_route(
             "/form/{programid}",
-            self.update_form_draft,
+            self.crate_new_form_draft,
             responses={200: {"model": ProgramForm}},
-            methods=["PUT"],
+            methods=["POST"],
         )
 
         self.router.add_api_route(
             "/form/{programid}",
-            self.crate_new_form_draft,
+            self.update_form_draft,
             responses={200: {"model": ProgramForm}},
-            methods=["POST"],
+            methods=["PUT"],
         )
 
         self.router.add_api_route(
@@ -75,18 +75,28 @@ class FormController(BaseController):
             # TODO: Add error handling
             pass
 
-    async def update_form_draft(self, programreginfo: ProgramRegistrantInfo):
-        return "form data updated!!"
+    async def update_form_draft(
+        self, programid: int, programreginfo: ProgramRegistrantInfo
+    ):
+        registrant_id = 42
+
+        return await self.form_service.crate_form_draft(
+            programid, programreginfo, registrant_id
+        )
 
     async def crate_new_form_draft(
         self, programid: int, programreginfo: ProgramRegistrantInfo
     ):
-        return "Successfully saved the draft"
+        registrant_id = 42
+
+        return await self.form_service.crate_form_draft(
+            programid, programreginfo, registrant_id
+        )
 
     async def submit_form(self, programid: int, programreginfo: ProgramRegistrantInfo):
         state = "active"
-        registrant_id = 46
+        registrant_id = 42
 
-        return await FormService.create_new_form_draft(
-            self, programid, programreginfo, state, registrant_id
+        return await self.form_service.submit_application_form(
+            programid, programreginfo, state, registrant_id
         )

@@ -27,6 +27,6 @@ class MembershipService(BaseService):
 
                     await session.commit()
                 except IntegrityError:
-                    return "Something went wrong!!"
+                    return "Could not add to registrant to program!!"
 
         return membership.id
