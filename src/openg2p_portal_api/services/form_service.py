@@ -50,7 +50,7 @@ class FormService(BaseService):
         return "Successfully submitted the draft!!"
 
     async def submit_application_form(
-        self, program_id: int, form_data, state: str, registrant_id: int
+        self, program_id: int, form_data, registrant_id: int
     ):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
@@ -66,7 +66,7 @@ class FormService(BaseService):
                 program_id=program_id,
                 program_membership_id=program_membership_id,
                 program_registrant_info=form_data.program_registrant_info,
-                state=state,
+                state="active",
                 registrant_id=registrant_id,
             )
 

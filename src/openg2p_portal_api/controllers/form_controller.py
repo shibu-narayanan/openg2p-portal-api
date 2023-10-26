@@ -94,9 +94,8 @@ class FormController(BaseController):
         )
 
     async def submit_form(self, programid: int, programreginfo: ProgramRegistrantInfo):
-        state = "active"
         registrant_id = 42
 
         return await self.form_service.submit_application_form(
-            programid, programreginfo, state, registrant_id
+            programid, programreginfo, registrant_id
         )

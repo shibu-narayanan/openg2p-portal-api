@@ -19,7 +19,7 @@ class MembershipService(BaseService):
 
             if membership is None:
                 membership = ProgramMembershipORM(
-                    program_id=programid, partner_id=partnerid
+                    program_id=programid, partner_id=partnerid, state="draft"
                 )
 
                 try:
