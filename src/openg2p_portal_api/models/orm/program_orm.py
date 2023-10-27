@@ -55,6 +55,20 @@ class ProgramORM(BaseORMModelWithId):
         return response
 
     @classmethod
+    async def get_all_program_by_keyword(cls, keyword: str):
+        response = []
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            stmt = (
+                select(cls)
+                .filter(cls.name.like(f"%{keyword}%"))
+                .options(selectinload(cls.membership))
+            )
+            result = await session.execute(stmt)
+            response = list(result.scalars().all()) if result.scalars() else []
+        return response
+
+    @classmethod
     async def get_program_form(cls, programid: int = None):
         response = None
         async_session_maker = async_sessionmaker(dbengine.get())

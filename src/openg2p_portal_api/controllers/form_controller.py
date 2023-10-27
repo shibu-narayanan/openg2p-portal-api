@@ -22,7 +22,7 @@ class FormController(BaseController):
 
         self.router.add_api_route(
             "/form/{programid}",
-            self.crate_new_form_draft,
+            self.create_new_form_draft,
             responses={200: {"model": ProgramForm}},
             methods=["POST"],
         )
@@ -84,12 +84,12 @@ class FormController(BaseController):
             programid, programreginfo, registrant_id
         )
 
-    async def crate_new_form_draft(
+    async def create_new_form_draft(
         self, programid: int, programreginfo: ProgramRegistrantInfo
     ):
         registrant_id = 42
 
-        return await self.form_service.crate_form_draft(
+        return await self.form_service.create_form_draft(
             programid, programreginfo, registrant_id
         )
 

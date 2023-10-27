@@ -15,7 +15,7 @@ class FormService(BaseService):
         super().__init__(**kwargs)
         self.membership_service = MembershipService.get_component()
 
-    async def crate_form_draft(self, program_id: int, form_data, registrant_id: int):
+    async def create_form_draft(self, program_id: int, form_data, registrant_id: int):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
             check_if_draft_already_present = (
