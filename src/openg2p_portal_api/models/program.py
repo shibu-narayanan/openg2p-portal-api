@@ -8,14 +8,14 @@ class ProgramMembership(BaseModel):
 
     partner_id: Optional[int] = None
     program_id: Optional[int] = None
+    state: Optional[str] = None
 
 
 class ProgramBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: Optional[int] = None
+    id: Optional[int]
     name: Optional[str] = None
-    active: Optional[bool] = None
     description: Optional[str] = None
 
 
@@ -36,9 +36,3 @@ class Program(ProgramBase):
     def has_applied(cls, v, values):
         # TODO: Iterate over program_membership_ids and check whether the user is present or not.
         return False
-
-
-class ProgramRegistrantInfo(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    program_registrant_info: Optional[str] = None
