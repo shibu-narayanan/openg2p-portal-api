@@ -1,8 +1,9 @@
+# from typing import Annotated
+
 from openg2p_fastapi_common.controller import BaseController
 
 from ..config import Settings
 from ..models.form import ProgramForm, ProgramRegistrantInfo
-from ..models.orm.program_orm import ProgramORM
 from ..services.form_service import FormService
 
 _config = Settings.get_config()
@@ -22,7 +23,7 @@ class FormController(BaseController):
 
         self.router.add_api_route(
             "/form/{programid}",
-            self.crate_new_form_draft,
+            self.create_new_form_draft,
             responses={200: {"model": ProgramForm}},
             methods=["POST"],
         )
@@ -48,48 +49,23 @@ class FormController(BaseController):
         return self._form_service
 
     async def get_program_form(self, programid: int):
-        response_dict = {}
-        res = await ProgramORM.get_program_form(programid)
-        if res:
-            form = res.form
-            if form:
-                response_dict = {
-                    "id": form.id,
-                    "program_id": res.id,
-                    "schema": form.schema,
-                    "submission_data": None,
-                    "program_name": res.name,
-                    "program_description": res.description,
-                }
-            else:
-                response_dict = {
-                    "id": None,
-                    "program_id": res.id,
-                    "schema": None,
-                    "submission_data": None,
-                    "program_name": res.name,
-                    "program_description": res.description,
-                }
-            return ProgramForm(**response_dict)
-        else:
-            # TODO: Add error handling
-            pass
+        return await self.form_service.get_program_form(programid)
 
     async def update_form_draft(
         self, programid: int, programreginfo: ProgramRegistrantInfo
     ):
         registrant_id = 42
 
-        return await self.form_service.crate_form_draft(
+        return await self.form_service.create_form_draft(
             programid, programreginfo, registrant_id
         )
 
-    async def crate_new_form_draft(
+    async def create_new_form_draft(
         self, programid: int, programreginfo: ProgramRegistrantInfo
     ):
         registrant_id = 42
 
-        return await self.form_service.crate_form_draft(
+        return await self.form_service.create_form_draft(
             programid, programreginfo, registrant_id
         )
 
