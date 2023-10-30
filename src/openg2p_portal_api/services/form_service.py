@@ -3,6 +3,8 @@ from openg2p_fastapi_common.service import BaseService
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from ..models.form import ProgramForm
+from ..models.orm.program_orm import ProgramORM
 from ..models.orm.program_registrant_info_orm import (
     ProgramRegistrantInfoDraftORM,
     ProgramRegistrantInfoORM,
@@ -14,6 +16,35 @@ class FormService(BaseService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.membership_service = MembershipService.get_component()
+
+    async def get_program_form(self, program_id: int):
+        response_dict = {}
+
+        res = await ProgramORM.get_program_form(program_id)
+        if res:
+            form = res.form
+            if form:
+                response_dict = {
+                    "id": form.id,
+                    "program_id": res.id,
+                    "schema": form.schema,
+                    "submission_data": None,
+                    "program_name": res.name,
+                    "program_description": res.description,
+                }
+            else:
+                response_dict = {
+                    "id": None,
+                    "program_id": res.id,
+                    "schema": None,
+                    "submission_data": None,
+                    "program_name": res.name,
+                    "program_description": res.description,
+                }
+            return ProgramForm(**response_dict)
+        else:
+            # TODO: Add error handling
+            pass
 
     async def create_form_draft(self, program_id: int, form_data, registrant_id: int):
         async_session_maker = async_sessionmaker(dbengine.get())

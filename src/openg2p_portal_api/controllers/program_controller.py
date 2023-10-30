@@ -3,8 +3,8 @@ from typing import List
 from openg2p_fastapi_common.controller import BaseController
 
 from ..config import Settings
-from ..models.orm.program_orm import ProgramORM
 from ..models.program import Program
+from ..services.program_service import ProgramService
 
 _config = Settings.get_config()
 
@@ -12,6 +12,7 @@ _config = Settings.get_config()
 class ProgramController(BaseController):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._program_service = ProgramService.get_component()
 
         self.router.add_api_route(
             "/program",
@@ -27,16 +28,14 @@ class ProgramController(BaseController):
             methods=["GET"],
         )
 
+    @property
+    def program_service(self):
+        if not self._program_service:
+            self._program_service = ProgramService.get_component()
+        return self._program_service
+
     async def get_programs(self):
-        return [
-            Program.model_validate(program)
-            for program in await ProgramORM.get_all_programs()
-        ]
+        return await self.program_service.get_all_program_service()
 
     async def get_program_by_id(self, programid: int):
-        res = await ProgramORM.get_all_by_program_id(programid)
-        if res:
-            return Program.model_validate(res)
-        else:
-            # TODO: Add error handling
-            pass
+        return await self.program_service.get_program_by_id_service(programid)
