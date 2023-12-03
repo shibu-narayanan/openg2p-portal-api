@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, validator
 
@@ -22,17 +22,13 @@ class ProgramBase(BaseModel):
 class Program(ProgramBase):
     model_config = ConfigDict(from_attributes=True)
 
-    self_service_portal_form: Optional[int] = Field(default=None, exclude=True)
-    is_portal_form_mapped: Optional[bool] = None
-    is_multiple_form_submission: Optional[bool] = None
-    membership: Optional[List[ProgramMembership]] = []
+    state: Optional[str] = None
     has_applied: Optional[bool] = None
+    self_service_portal_form: Optional[int] = Field(default=None, exclude=True)
+    is_portal_form_mapped: Optional[bool] = False
+    is_multiple_form_submission: Optional[bool] = False
+    last_application_status: Optional[str] = None
 
     @validator("is_portal_form_mapped", pre=True, always=True)
     def is_portal_form(cls, v, values):
         return bool(values.get("self_service_portal_form"))
-
-    @validator("has_applied", pre=True, always=True)
-    def has_applied(cls, v, values):
-        # TODO: Iterate over program_membership_ids and check whether the user is present or not.
-        return False

@@ -2,7 +2,8 @@
 
 # ruff: noqa: I001
 
-from openg2p_portal_api.app import Initializer
+from openg2p_portal_api.app import Initializer as SelfServicePortalInitializer
 
-main_init = Initializer()
+main_init = SelfServicePortalInitializer()
+
 main_init.main()

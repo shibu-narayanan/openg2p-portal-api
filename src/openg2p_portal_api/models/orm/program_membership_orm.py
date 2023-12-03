@@ -1,8 +1,12 @@
+from typing import List, Optional
+
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel
 from sqlalchemy import ForeignKey, Integer, String, and_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .program_registrant_info_orm import ProgramRegistrantInfoORM
 
 
 class ProgramMembershipORM(BaseORMModel):
@@ -14,6 +18,9 @@ class ProgramMembershipORM(BaseORMModel):
     state: Mapped[str] = mapped_column(String())
 
     program = relationship("ProgramORM", back_populates="membership")
+    program_reg_info: Mapped[Optional[List["ProgramRegistrantInfoORM"]]] = relationship(
+        back_populates="membership"
+    )
 
     @classmethod
     async def get_membership_by_id(cls, program_id: int, partner_id: int):

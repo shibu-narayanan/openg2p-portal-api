@@ -1,9 +1,12 @@
-# from typing import Annotated
+from typing import Annotated
 
-from fastapi import Query
+from fastapi import Depends, Query
 from openg2p_fastapi_common.controller import BaseController
+from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from ..config import Settings
+from ..dependencies import JwtBearerAuth
+from ..models.credentials import AuthCredentials
 from ..models.program import Program
 from ..services.program_service import ProgramService
 
@@ -30,8 +33,15 @@ class DiscoveryController(BaseController):
 
     async def get_program_by_keyword(
         self,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
         keyword: str = Query(..., description="keyword to search"),
         page: int = Query(None, description="page number for pagination"),
         pagesize: int = Query(None, description="number of records in a page"),
     ):
-        return await self.program_service.get_program_by_key_service(keyword)
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+        return await self.program_service.get_program_by_key_service(
+            keyword, auth.partner_id
+        )

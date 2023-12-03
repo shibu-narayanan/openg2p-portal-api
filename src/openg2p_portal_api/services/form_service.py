@@ -22,25 +22,24 @@ class FormService(BaseService):
 
         res = await ProgramORM.get_program_form(program_id)
         if res:
+            response_dict = {
+                "id": None,
+                "program_id": res.id,
+                "schema": None,
+                "submission_data": None,
+                "program_name": res.name,
+                "program_description": res.description,
+            }
+
             form = res.form
             if form:
-                response_dict = {
-                    "id": form.id,
-                    "program_id": res.id,
-                    "schema": form.schema,
-                    "submission_data": None,
-                    "program_name": res.name,
-                    "program_description": res.description,
-                }
-            else:
-                response_dict = {
-                    "id": None,
-                    "program_id": res.id,
-                    "schema": None,
-                    "submission_data": None,
-                    "program_name": res.name,
-                    "program_description": res.description,
-                }
+                response_dict.update(
+                    {
+                        "id": form.id,
+                        "schema": form.schema,
+                    }
+                )
+
             return ProgramForm(**response_dict)
         else:
             # TODO: Add error handling

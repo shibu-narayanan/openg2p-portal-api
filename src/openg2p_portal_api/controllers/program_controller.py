@@ -1,8 +1,12 @@
-from typing import List
+from typing import Annotated, List
 
+from fastapi import Depends
 from openg2p_fastapi_common.controller import BaseController
+from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from ..config import Settings
+from ..dependencies import JwtBearerAuth
+from ..models.credentials import AuthCredentials
 from ..models.program import Program
 from ..services.program_service import ProgramService
 
@@ -34,8 +38,23 @@ class ProgramController(BaseController):
             self._program_service = ProgramService.get_component()
         return self._program_service
 
-    async def get_programs(self):
-        return await self.program_service.get_all_program_service()
+    async def get_programs(
+        self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+    ):
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+        return await self.program_service.get_all_program_service(auth.partner_id)
 
-    async def get_program_by_id(self, programid: int):
-        return await self.program_service.get_program_by_id_service(programid)
+    async def get_program_by_id(
+        self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+    ):
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+
+        return await self.program_service.get_program_by_id_service(
+            programid, auth.partner_id
+        )

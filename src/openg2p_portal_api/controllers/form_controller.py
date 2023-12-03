@@ -1,8 +1,12 @@
-# from typing import Annotated
+from typing import Annotated
 
+from fastapi import Depends
 from openg2p_fastapi_common.controller import BaseController
+from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from ..config import Settings
+from ..dependencies import JwtBearerAuth
+from ..models.credentials import AuthCredentials
 from ..models.form import ProgramForm, ProgramRegistrantInfo
 from ..services.form_service import FormService
 
@@ -48,30 +52,52 @@ class FormController(BaseController):
             self._form_service = FormService.get_component()
         return self._form_service
 
-    async def get_program_form(self, programid: int):
+    async def get_program_form(
+        self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+    ):
         return await self.form_service.get_program_form(programid)
 
     async def update_form_draft(
-        self, programid: int, programreginfo: ProgramRegistrantInfo
+        self,
+        programid: int,
+        programreginfo: ProgramRegistrantInfo,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
-        registrant_id = 42
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
 
         return await self.form_service.create_form_draft(
-            programid, programreginfo, registrant_id
+            programid, programreginfo, auth.partner_id
         )
 
     async def create_new_form_draft(
-        self, programid: int, programreginfo: ProgramRegistrantInfo
+        self,
+        programid: int,
+        programreginfo: ProgramRegistrantInfo,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
-        registrant_id = 42
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
 
         return await self.form_service.create_form_draft(
-            programid, programreginfo, registrant_id
+            programid, programreginfo, auth.partner_id
         )
 
-    async def submit_form(self, programid: int, programreginfo: ProgramRegistrantInfo):
-        registrant_id = 42
+    async def submit_form(
+        self,
+        programid: int,
+        programreginfo: ProgramRegistrantInfo,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+    ):
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
 
         return await self.form_service.submit_application_form(
-            programid, programreginfo, registrant_id
+            programid, programreginfo, auth.partner_id
         )
