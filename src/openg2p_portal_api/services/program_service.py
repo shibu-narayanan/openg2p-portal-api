@@ -49,18 +49,17 @@ class ProgramService(BaseService):
     async def get_program_by_id_service(self, programid: int, partnerid: int):
         res = await ProgramORM.get_all_by_program_id(programid)
 
-        response_dict = {
-            "id": res.id,
-            "name": res.name,
-            "description": res.description,
-            "state": "Not Applied",
-            "has_applied": False,
-            "self_service_portal_form": res.self_service_portal_form,
-            "is_multiple_form_submission": res.is_multiple_form_submission,
-            "last_application_status": "Not submitted any application",
-        }
-
         if res:
+            response_dict = {
+                "id": res.id,
+                "name": res.name,
+                "description": res.description,
+                "state": "Not Applied",
+                "has_applied": False,
+                "self_service_portal_form": res.self_service_portal_form,
+                "is_multiple_form_submission": res.is_multiple_form_submission,
+                "last_application_status": "Not submitted any application",
+            }
             membership = res.membership
             if membership:
                 for member in membership:
@@ -85,8 +84,7 @@ class ProgramService(BaseService):
 
             return Program(**response_dict)
         else:
-            # TODO: Add error handling
-            pass
+            return {}
 
     async def get_program_by_key_service(self, keyword: str, partnerid: int):
         program_list = []

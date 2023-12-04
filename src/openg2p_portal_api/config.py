@@ -30,6 +30,7 @@ class Settings(AuthSettings, Settings):
     auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_by_keyword: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    auth_api_update_form_draft: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    auth_api_create_new_form_draft: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_create_or_update_form_draft: ApiAuthSettings = ApiAuthSettings(
+        enabled=True
+    )
     auth_api_submit_form: ApiAuthSettings = ApiAuthSettings(enabled=True)

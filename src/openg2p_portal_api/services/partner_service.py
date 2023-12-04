@@ -21,6 +21,8 @@ class PartnerService(BaseService):
                 _config.auth_id_type_ids[userinfo_dict["iss"]], userinfo_dict["sub"]
             )
 
+            # TODO: Check for the reg_id_type_id if not present throw the error
+
             if not partner:
                 partner = PartnerORM(
                     name=userinfo_dict["name"],

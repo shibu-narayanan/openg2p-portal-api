@@ -9,7 +9,7 @@ class ProgramForm(BaseModel):
     program_id: Optional[int]
     form_id: Optional[int] = Field(default=None, alias="id")
     json_schema: Optional[str] = Field(default=None, alias="schema")
-    submission_data: Optional[str] = None
+    submission_data: Optional[dict] = {}
     program_name: Optional[str] = None
     program_description: Optional[str] = None
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -9,7 +9,7 @@ class RegistrantID(BaseModel):
 
     id_type: Optional[str] = None
     value: Optional[str] = None
-    expiry_date: Optional[str] = None
+    expiry_date: Optional[date] = None
 
 
 class BankDetails(BaseModel):
@@ -23,7 +23,7 @@ class PhoneNumber(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     phone_no: Optional[str] = None
-    date_collected: Optional[str] = None
+    date_collected: Optional[date] = None
 
 
 class Profile(BaseModel):
@@ -38,7 +38,7 @@ class Profile(BaseModel):
     addl_name: Optional[str] = None
     given_name: Optional[str] = None
     family_name: Optional[str] = None
-    birthdate: Optional[datetime] = None
+    birthdate: Optional[date] = None
     phone_numbers: List[PhoneNumber] = []
     birth_place: Optional[str] = None
-    notification_preferences: Optional[str] = None
+    notification_preference: Optional[str] = None

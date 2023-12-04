@@ -27,14 +27,7 @@ class FormController(BaseController):
 
         self.router.add_api_route(
             "/form/{programid}",
-            self.create_new_form_draft,
-            responses={200: {"model": ProgramForm}},
-            methods=["POST"],
-        )
-
-        self.router.add_api_route(
-            "/form/{programid}",
-            self.update_form_draft,
+            self.create_or_update_form_draft,
             responses={200: {"model": ProgramForm}},
             methods=["PUT"],
         )
@@ -55,24 +48,13 @@ class FormController(BaseController):
     async def get_program_form(
         self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
     ):
-        return await self.form_service.get_program_form(programid)
-
-    async def update_form_draft(
-        self,
-        programid: int,
-        programreginfo: ProgramRegistrantInfo,
-        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
-    ):
         if not auth.partner_id:
             raise UnauthorizedError(
                 message="Unauthorized. Partner Not Found in Registry."
             )
+        return await self.form_service.get_program_form(programid, auth.partner_id)
 
-        return await self.form_service.create_form_draft(
-            programid, programreginfo, auth.partner_id
-        )
-
-    async def create_new_form_draft(
+    async def create_or_update_form_draft(
         self,
         programid: int,
         programreginfo: ProgramRegistrantInfo,

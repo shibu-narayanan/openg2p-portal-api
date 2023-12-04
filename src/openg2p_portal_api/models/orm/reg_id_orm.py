@@ -7,8 +7,6 @@ from sqlalchemy import DateTime, ForeignKey, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-# from .partner_orm import PartnerORM
-
 
 class RegIDORM(BaseORMModel):
     __tablename__ = "g2p_reg_id"
@@ -19,7 +17,7 @@ class RegIDORM(BaseORMModel):
     value: Mapped[str] = mapped_column()
     expiry_date: Mapped[Optional[datetime]] = mapped_column(DateTime())
 
-    partner: Mapped[Optional["PartnerORM"]] = relationship(back_populates="reg_ids")
+    partner = relationship("PartnerORM", back_populates="reg_ids")
 
     @classmethod
     async def get_partner_by_reg_id(cls, id_type: int, value: str) -> List["RegIDORM"]:
@@ -40,5 +38,22 @@ class RegIDORM(BaseORMModel):
             stmt = select(cls).filter(cls.partner_id == id)
             result = await session.execute(stmt)
 
-            response = result.mappings().all()
+            response = list(result.scalars())
+        return response
+
+
+class RegIDTypeORM(BaseORMModel):
+    __tablename__ = "g2p_id_type"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column()
+
+    @classmethod
+    async def get_id_type_name(cls, id_type: int):
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            stmt = select(cls).filter(cls.id == id_type)
+            result = await session.execute(stmt)
+
+            response = result.scalar()
         return response
