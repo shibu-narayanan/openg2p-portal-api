@@ -18,22 +18,25 @@ class FormController(BaseController):
         super().__init__(**kwargs)
         self._form_service = FormService.get_component()
 
+        self.router.prefix += "/form"
+        self.router.tags += ["portal"]
+
         self.router.add_api_route(
-            "/form/{programid}",
+            "/{programid}",
             self.get_program_form,
             responses={200: {"model": ProgramForm}},
             methods=["GET"],
         )
 
         self.router.add_api_route(
-            "/form/{programid}",
+            "/{programid}",
             self.create_or_update_form_draft,
             responses={200: {"model": ProgramForm}},
             methods=["PUT"],
         )
 
         self.router.add_api_route(
-            "/form/{programid}/submit",
+            "/{programid}/submit",
             self.submit_form,
             responses={200: {"model": ProgramForm}},
             methods=["POST"],

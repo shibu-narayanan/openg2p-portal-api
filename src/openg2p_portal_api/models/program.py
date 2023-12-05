@@ -30,5 +30,5 @@ class Program(ProgramBase):
     last_application_status: Optional[str] = None
 
     @validator("is_portal_form_mapped", pre=True, always=True)
-    def is_portal_form(cls, v, values):
+    def is_program_form_mapped(cls, v, values):
         return bool(values.get("self_service_portal_form"))

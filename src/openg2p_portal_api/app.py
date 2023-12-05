@@ -16,6 +16,7 @@ from .controllers.program_controller import ProgramController
 from .models.orm.program_registrant_info_orm import ProgramRegistrantInfoDraftORM
 from .services.form_service import FormService
 from .services.membership_service import MembershipService
+from .services.partner_service import PartnerService
 from .services.program_service import ProgramService
 
 
@@ -24,13 +25,16 @@ class Initializer(Initializer):
         super().initialize()
         # Initialize all Services, Controllers, any utils here.
         MembershipService()
-        FormService()
         ProgramService()
+        FormService()
+        PartnerService()
+
         DiscoveryController().post_init()
         ProgramController().post_init()
         FormController().post_init()
-        OAuthController().post_init()
+
         AuthController().post_init()
+        OAuthController().post_init()
 
     def migrate_database(self, args):
         super().migrate_database(args)

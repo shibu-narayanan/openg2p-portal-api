@@ -46,3 +46,27 @@ class PartnerService(BaseService):
                     return "Could not create Partner"
 
         return "Partner created!!"
+
+    async def update_partner_data(self, id, data: dict):
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            partner = await PartnerORM.get_partner_data(id)
+            if partner:
+                for field_name in partner.__dict__:
+                    if field_name in data:
+                        setattr(partner, field_name, data[field_name])
+
+                partner.name = (
+                    data["given_name"]
+                    + " "
+                    + data["family_name"]
+                    + " "
+                    + data["addl_name"]
+                )
+
+                try:
+                    session.add(partner)
+                    await session.commit()
+                except IntegrityError:
+                    return "Could not add to registrant to program!!"
+        return "Updated the partner info"

@@ -45,7 +45,6 @@ class FormService(BaseService):
                 )
             )
             if draft_submission_data:
-                print(draft_submission_data.program_registrant_info)
                 response_dict.update(
                     {"submission_data": draft_submission_data.program_registrant_info}
                 )

@@ -15,6 +15,7 @@ from ..models.orm.partner_orm import (
 )
 from ..models.orm.reg_id_orm import RegIDORM, RegIDTypeORM
 from ..models.profile import Profile
+from ..services.partner_service import PartnerService
 
 _config = Settings.get_config()
 
@@ -22,6 +23,20 @@ _config = Settings.get_config()
 class AuthController(AuthController):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._partner_service = PartnerService.get_component()
+
+        self.router.add_api_route(
+            "/profile",
+            self.update_profile,
+            responses={200: {"model": Profile}},
+            methods=["PUT"],
+        )
+
+    @property
+    def partner_service(self):
+        if not self._partner_service:
+            self._partner_service = PartnerService.get_component()
+        return self._partner_service
 
     async def get_profile(
         self,
@@ -94,4 +109,18 @@ class AuthController(AuthController):
             phone_numbers=partner_phone_numbers,
             birth_place=partner_data.birth_place,
             notification_preference=partner_data.notification_preference,
+        )
+
+    async def update_profile(
+        self,
+        userdata: Profile,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+    ):
+        if userdata.id is None or userdata.id != auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+
+        return await self.partner_service.update_partner_data(
+            auth.partner_id, userdata.model_dump(exclude={"id"})
         )

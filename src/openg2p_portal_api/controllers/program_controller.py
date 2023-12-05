@@ -18,15 +18,18 @@ class ProgramController(BaseController):
         super().__init__(**kwargs)
         self._program_service = ProgramService.get_component()
 
+        self.router.prefix += "/program"
+        self.router.tags += ["portal"]
+
         self.router.add_api_route(
-            "/program",
+            "",
             self.get_programs,
             responses={200: {"model": List[Program]}},
             methods=["GET"],
         )
 
         self.router.add_api_route(
-            "/program/{programid}",
+            "/{programid}",
             self.get_program_by_id,
             responses={200: {"model": Program}},
             methods=["GET"],
