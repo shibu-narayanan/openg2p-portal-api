@@ -24,7 +24,6 @@ class MembershipService(BaseService):
 
                 try:
                     session.add(membership)
-
                     await session.commit()
                 except IntegrityError:
                     return "Could not add to registrant to program!!"

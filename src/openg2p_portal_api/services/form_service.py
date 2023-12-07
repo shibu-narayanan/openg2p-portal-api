@@ -17,45 +17,50 @@ class FormService(BaseService):
         super().__init__(**kwargs)
         self.membership_service = MembershipService.get_component()
 
-    async def get_program_form(self, program_id: int):
+    async def get_program_form(self, program_id: int, registrant_id: int):
         response_dict = {}
 
         res = await ProgramORM.get_program_form(program_id)
         if res:
+            response_dict = {
+                "id": None,
+                "program_id": res.id,
+                "schema": None,
+                "submission_data": None,
+                "program_name": res.name,
+                "program_description": res.description,
+            }
+
             form = res.form
             if form:
-                response_dict = {
-                    "id": form.id,
-                    "program_id": res.id,
-                    "schema": form.schema,
-                    "submission_data": None,
-                    "program_name": res.name,
-                    "program_description": res.description,
-                }
-            else:
-                response_dict = {
-                    "id": None,
-                    "program_id": res.id,
-                    "schema": None,
-                    "submission_data": None,
-                    "program_name": res.name,
-                    "program_description": res.description,
-                }
-            return ProgramForm(**response_dict)
-        else:
-            # TODO: Add error handling
-            pass
-
-    async def create_form_draft(self, program_id: int, form_data, registrant_id: int):
-        async_session_maker = async_sessionmaker(dbengine.get())
-        async with async_session_maker() as session:
-            check_if_draft_already_present = (
+                response_dict.update(
+                    {
+                        "id": form.id,
+                        "schema": form.schema,
+                    }
+                )
+            draft_submission_data = (
                 await ProgramRegistrantInfoDraftORM.get_draft_reg_info_by_id(
                     program_id, registrant_id
                 )
             )
+            if draft_submission_data:
+                response_dict.update(
+                    {"submission_data": draft_submission_data.program_registrant_info}
+                )
 
-            if check_if_draft_already_present is None:
+            return ProgramForm(**response_dict)
+        else:
+            return response_dict
+
+    async def create_form_draft(self, program_id: int, form_data, registrant_id: int):
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            draft_form = await ProgramRegistrantInfoDraftORM.get_draft_reg_info_by_id(
+                program_id, registrant_id
+            )
+
+            if draft_form is None:
                 program_registrant_info = ProgramRegistrantInfoDraftORM(
                     program_id=program_id,
                     program_registrant_info=form_data.program_registrant_info,
@@ -70,10 +75,10 @@ class FormService(BaseService):
                     return "Error: In creating the draft"
 
             else:
-                check_if_draft_already_present.program_registrant_info = (
-                    form_data.program_registrant_info
-                )
+                draft_form.program_registrant_info = form_data.program_registrant_info
+
                 try:
+                    session.add(draft_form)
                     await session.commit()
                 except IntegrityError:
                     return "Error: In updating the draft."

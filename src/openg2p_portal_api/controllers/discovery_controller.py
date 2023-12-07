@@ -1,10 +1,8 @@
-# from typing import Annotated
-
 from fastapi import Query
 from openg2p_fastapi_common.controller import BaseController
 
 from ..config import Settings
-from ..models.program import Program
+from ..models.program import ProgramBase
 from ..services.program_service import ProgramService
 
 _config = Settings.get_config()
@@ -15,10 +13,12 @@ class DiscoveryController(BaseController):
         super().__init__(**kwargs)
         self._program_service = ProgramService.get_component()
 
+        self.router.tags += ["portal"]
+
         self.router.add_api_route(
             "/discovery",
             self.get_program_by_keyword,
-            responses={200: {"model": Program}},
+            responses={200: {"model": ProgramBase}},
             methods=["GET"],
         )
 

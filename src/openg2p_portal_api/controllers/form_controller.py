@@ -1,8 +1,12 @@
-# from typing import Annotated
+from typing import Annotated
 
+from fastapi import Depends
 from openg2p_fastapi_common.controller import BaseController
+from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from ..config import Settings
+from ..dependencies import JwtBearerAuth
+from ..models.credentials import AuthCredentials
 from ..models.form import ProgramForm, ProgramRegistrantInfo
 from ..services.form_service import FormService
 
@@ -14,29 +18,25 @@ class FormController(BaseController):
         super().__init__(**kwargs)
         self._form_service = FormService.get_component()
 
+        self.router.prefix += "/form"
+        self.router.tags += ["portal"]
+
         self.router.add_api_route(
-            "/form/{programid}",
+            "/{programid}",
             self.get_program_form,
             responses={200: {"model": ProgramForm}},
             methods=["GET"],
         )
 
         self.router.add_api_route(
-            "/form/{programid}",
-            self.create_new_form_draft,
-            responses={200: {"model": ProgramForm}},
-            methods=["POST"],
-        )
-
-        self.router.add_api_route(
-            "/form/{programid}",
-            self.update_form_draft,
+            "/{programid}",
+            self.create_or_update_form_draft,
             responses={200: {"model": ProgramForm}},
             methods=["PUT"],
         )
 
         self.router.add_api_route(
-            "/form/{programid}/submit",
+            "/{programid}/submit",
             self.submit_form,
             responses={200: {"model": ProgramForm}},
             methods=["POST"],
@@ -48,30 +48,41 @@ class FormController(BaseController):
             self._form_service = FormService.get_component()
         return self._form_service
 
-    async def get_program_form(self, programid: int):
-        return await self.form_service.get_program_form(programid)
-
-    async def update_form_draft(
-        self, programid: int, programreginfo: ProgramRegistrantInfo
+    async def get_program_form(
+        self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
     ):
-        registrant_id = 42
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+        return await self.form_service.get_program_form(programid, auth.partner_id)
+
+    async def create_or_update_form_draft(
+        self,
+        programid: int,
+        programreginfo: ProgramRegistrantInfo,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+    ):
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
 
         return await self.form_service.create_form_draft(
-            programid, programreginfo, registrant_id
+            programid, programreginfo, auth.partner_id
         )
 
-    async def create_new_form_draft(
-        self, programid: int, programreginfo: ProgramRegistrantInfo
+    async def submit_form(
+        self,
+        programid: int,
+        programreginfo: ProgramRegistrantInfo,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
-        registrant_id = 42
-
-        return await self.form_service.create_form_draft(
-            programid, programreginfo, registrant_id
-        )
-
-    async def submit_form(self, programid: int, programreginfo: ProgramRegistrantInfo):
-        registrant_id = 42
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
 
         return await self.form_service.submit_application_form(
-            programid, programreginfo, registrant_id
+            programid, programreginfo, auth.partner_id
         )
