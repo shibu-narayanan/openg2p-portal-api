@@ -25,10 +25,11 @@ class PartnerService(BaseService):
 
             if not partner:
                 partner = PartnerORM(
-                    name=userinfo_dict["name"],
-                    given_name=userinfo_dict["given_name"],
-                    family_name=userinfo_dict["family_name"],
-                    email=userinfo_dict["email"],
+                    # TODO: Update PartnerORM using a mapping
+                    name=userinfo_dict.get("name", None),
+                    given_name=userinfo_dict.get("given_name", None),
+                    family_name=userinfo_dict.get("family_name", None),
+                    email=userinfo_dict.get("email", None),
                     active=True,
                 )
                 reg_id = RegIDORM(

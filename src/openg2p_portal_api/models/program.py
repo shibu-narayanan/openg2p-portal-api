@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, validator
@@ -32,3 +33,32 @@ class Program(ProgramBase):
     @validator("is_portal_form_mapped", pre=True, always=True)
     def is_program_form_mapped(cls, v, values):
         return bool(values.get("self_service_portal_form"))
+
+
+class ProgramSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    program_name: Optional[str] = None
+    enrollment_status: Optional[str] = None
+    total_funds_awaited: Optional[int] = None
+    total_funds_received: Optional[int] = None
+
+
+class ApplicationDetails(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    program_name: Optional[str] = None
+    application_id: Optional[int] = None
+    date_applied: Optional[datetime] = None
+    application_status: Optional[str] = None
+
+
+class BenefitDetails(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    program_name: Optional[str] = None
+    enrollment_status: Optional[str] = None
+    funds_awaited: Optional[int] = None
+    funds_received: Optional[int] = None
+    entitlement_reference_number: Optional[int] = None
+    # cycle_name: Optional[str]=None

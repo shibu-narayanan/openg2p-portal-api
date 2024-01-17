@@ -23,6 +23,6 @@ class OAuthController(OAuthController):
             auth=cookie_utils.get_response_cookies(res, "X-Access-Token")[-1],
             id_token=cookie_utils.get_response_cookies(res, "X-ID-Token")[-1],
         )
-        await PartnerService.check_and_create_partner(self, userinfo_dict)
+        await self.partner_service.check_and_create_partner(userinfo_dict)
 
         return res
