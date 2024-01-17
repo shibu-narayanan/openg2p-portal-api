@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel
-from sqlalchemy import ForeignKey, Integer, String, and_, select
+from sqlalchemy import DateTime, ForeignKey, Integer, String, and_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +17,7 @@ class ProgramMembershipORM(BaseORMModel):
     partner_id: Mapped[int] = mapped_column(Integer())
     program_id: Mapped[int] = mapped_column(ForeignKey("g2p_program.id"))
     state: Mapped[str] = mapped_column(String())
+    create_date: Mapped[datetime] = mapped_column(DateTime())
 
     program = relationship("ProgramORM", back_populates="membership")
     program_reg_info: Mapped[Optional[List["ProgramRegistrantInfoORM"]]] = relationship(

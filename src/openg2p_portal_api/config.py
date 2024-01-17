@@ -34,3 +34,6 @@ class Settings(AuthSettings, Settings):
     )
     auth_api_submit_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_update_profile: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_program_summary: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_application_details: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_benefit_details: ApiAuthSettings = ApiAuthSettings(enabled=True)

@@ -2,7 +2,13 @@ from openg2p_fastapi_common.service import BaseService
 
 from ..models.orm.program_orm import ProgramORM
 from ..models.orm.program_registrant_info_orm import ProgramRegistrantInfoORM
-from ..models.program import Program, ProgramBase
+from ..models.program import (
+    ApplicationDetails,
+    BenefitDetails,
+    Program,
+    ProgramBase,
+    ProgramSummary,
+)
 
 
 class ProgramService(BaseService):
@@ -102,3 +108,18 @@ class ProgramService(BaseService):
 
                 program_list.append(ProgramBase(**response_dict))
         return program_list
+
+    async def get_program_summary_service(self, partnerid: int):
+        summary_details = await ProgramORM.get_program_summary(partnerid)
+        return [ProgramSummary.model_validate(program) for program in summary_details]
+
+    async def get_application_details_service(self, partnerid: int):
+        application_details = await ProgramORM.get_application_details(partnerid)
+        return [
+            ApplicationDetails.model_validate(program)
+            for program in application_details
+        ]
+
+    async def get_benefit_details_service(self, partnerid: int):
+        benefit_details = await ProgramORM.get_benefit_details(self, partnerid)
+        return [BenefitDetails.model_validate(program) for program in benefit_details]
