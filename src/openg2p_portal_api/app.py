@@ -5,7 +5,6 @@ from .config import Settings
 
 _config = Settings.get_config()
 
-from openg2p_fastapi_auth.models.orm.login_provider import LoginProvider
 from openg2p_fastapi_common.app import Initializer
 
 from .controllers.auth_controller import AuthController
@@ -41,6 +40,5 @@ class Initializer(Initializer):
 
         async def migrate():
             await ProgramRegistrantInfoDraftORM.create_migrate()
-            await LoginProvider.create_migrate()
 
         asyncio.run(migrate())

@@ -1,12 +1,18 @@
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import Depends
 from openg2p_fastapi_auth.controllers.auth_controller import AuthController
+from openg2p_fastapi_auth.models.login_provider import (
+    LoginProviderHttpResponse,
+    LoginProviderResponse,
+    LoginProviderTypes,
+)
 from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from ..config import Settings
 from ..dependencies import JwtBearerAuth
 from ..models.credentials import AuthCredentials
+from ..models.orm.auth_oauth_provider import AuthOauthProviderORM
 from ..models.orm.partner_orm import (
     BankORM,
     PartnerBankORM,
@@ -21,7 +27,14 @@ _config = Settings.get_config()
 
 
 class AuthController(AuthController):
+    """
+    AuthController handles authentication and profile management operations.
+    """
+
     def __init__(self, **kwargs):
+        """
+        Initializes the AuthController with necessary components and configurations.
+        """
         super().__init__(**kwargs)
         self._partner_service = PartnerService.get_component()
 
@@ -34,6 +47,9 @@ class AuthController(AuthController):
 
     @property
     def partner_service(self):
+        """
+        Provides access to the partner service component.
+        """
         if not self._partner_service:
             self._partner_service = PartnerService.get_component()
         return self._partner_service
@@ -43,7 +59,19 @@ class AuthController(AuthController):
         auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
         online: bool = True,
     ):
-        # res = await super().get_profile(auth, online)
+        """
+        Retrieves the profile of the authenticated user.
+
+        Args:
+
+            auth (AuthCredentials): Authentication credentials, obtained via JWT Bearer Auth.
+
+            online (bool, optional): Indicates whether to fetch the profile online. Defaults to True.
+
+        Returns:
+
+            Profile: The profile of the authenticated user.
+        """
 
         if not auth.partner_id:
             raise UnauthorizedError(
@@ -116,6 +144,19 @@ class AuthController(AuthController):
         userdata: Profile,
         auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
+        """
+        Updates the profile of the authenticated user.
+
+        Args:
+
+            userdata (Profile): The new data for the user's profile.
+
+            auth (AuthCredentials): Authentication credentials, obtained via JWT Bearer Auth.
+
+        Returns:
+
+            Confirmation or updated profile data after the update.
+        """
         if userdata.id is None or userdata.id != auth.partner_id:
             raise UnauthorizedError(
                 message="Unauthorized. Partner Not Found in Registry."
@@ -124,3 +165,26 @@ class AuthController(AuthController):
         return await self.partner_service.update_partner_data(
             auth.partner_id, userdata.model_dump(exclude={"id"})
         )
+
+    async def get_login_providers(self):
+        """
+        Get available Login Providers List. Can also be used to display login providers on UI.
+        Use getLoginProviderRedirect API to redirect to this Login Provider to perform login.
+        """
+        auth_providers: List[
+            AuthOauthProviderORM
+        ] = await AuthOauthProviderORM.get_all()
+        return LoginProviderHttpResponse(
+            loginProviders=[
+                LoginProviderResponse(
+                    id=lp.id,
+                    name=lp.name,
+                    type=LoginProviderTypes.oauth2_auth_code,
+                    displayName=lp.body or "",
+                    displayIconUrl=lp.g2p_portal_login_image_icon_url or "",
+                )
+                for lp in auth_providers
+            ],
+        )
+
+    # TODO Add Mapping for auth provider for other APIs

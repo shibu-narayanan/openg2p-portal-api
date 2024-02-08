@@ -25,8 +25,6 @@ class Settings(AuthSettings, Settings):
     openapi_version: str = __version__
     db_dbname: Optional[str] = "openg2pdb"
 
-    login_providers_table_name: str = "g2p_self_service_login_providers"
-
     auth_id_type_ids: Dict[str, int] = []
 
     auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
