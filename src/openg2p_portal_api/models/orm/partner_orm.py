@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel, BaseORMModelWithId
-from sqlalchemy import Boolean, Date, DateTime, String, select
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -76,7 +76,7 @@ class PartnerPhoneNoORM(BaseORMModel):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     phone_no: Mapped[str] = mapped_column()
-    partner_id: Mapped[int] = mapped_column()
+    partner_id: Mapped[int] = mapped_column(ForeignKey("res_partner.id"))
     date_collected: Mapped[date] = mapped_column()
 
     partner: Mapped[PartnerORM] = relationship()
