@@ -23,7 +23,7 @@ class PartnerORM(BaseORMModelWithId):
     birthdate: Mapped[date] = mapped_column(Date())
     birth_place: Mapped[str] = mapped_column()
     notification_preference: Mapped[str] = mapped_column()
-    # phone: Mapped[str] = mapped_column()
+    phone: Mapped[str] = mapped_column()
 
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
@@ -79,8 +79,10 @@ class PartnerPhoneNoORM(BaseORMModel):
     partner_id: Mapped[int] = mapped_column()
     date_collected: Mapped[date] = mapped_column()
 
+    partner: Mapped[PartnerORM] = relationship()
+
     @classmethod
-    async def get_partner_phone_details(cls, id: int) -> List["PartnerBankORM"]:
+    async def get_partner_phone_details(cls, id: int) -> List["PartnerPhoneNoORM"]:
         response = []
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:

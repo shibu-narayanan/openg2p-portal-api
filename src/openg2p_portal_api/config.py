@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 
 from openg2p_fastapi_auth.config import ApiAuthSettings
 from openg2p_fastapi_auth.config import Settings as AuthSettings
@@ -24,8 +24,6 @@ class Settings(AuthSettings, Settings):
 
     openapi_version: str = __version__
     db_dbname: Optional[str] = "openg2pdb"
-
-    auth_id_type_ids: Dict[str, int] = []
 
     auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
