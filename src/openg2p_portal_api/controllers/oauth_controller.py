@@ -1,5 +1,4 @@
 from fastapi import Request
-from openg2p_fastapi_auth.controllers.auth_controller import AuthController
 from openg2p_fastapi_auth.controllers.oauth_controller import OAuthController
 from openg2p_fastapi_common.utils import cookie_utils
 
@@ -19,7 +18,6 @@ class OAuthController(OAuthController):
         Initializes the OAuthController with necessary components and configurations.
         """
         super().__init__(**kwargs)
-        self.auth_controller = AuthController.get_component()
         self.partner_service = PartnerService.get_component()
 
     async def oauth_callback(self, request: Request):
@@ -36,8 +34,7 @@ class OAuthController(OAuthController):
         """
         res = await super().oauth_callback(request)
 
-        userinfo_dict = await AuthController.get_oauth_validation_data(
-            self,
+        userinfo_dict = await self.auth_controller.get_oauth_validation_data(
             auth=cookie_utils.get_response_cookies(res, "X-Access-Token")[-1],
             id_token=cookie_utils.get_response_cookies(res, "X-ID-Token")[-1],
         )

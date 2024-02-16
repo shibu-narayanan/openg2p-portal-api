@@ -2,11 +2,7 @@ from typing import Annotated, List
 
 from fastapi import Depends
 from openg2p_fastapi_auth.controllers.auth_controller import AuthController
-from openg2p_fastapi_auth.models.login_provider import (
-    LoginProviderHttpResponse,
-    LoginProviderResponse,
-    LoginProviderTypes,
-)
+from openg2p_fastapi_auth.models.orm.login_provider import LoginProvider
 from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from ..config import Settings
@@ -166,25 +162,16 @@ class AuthController(AuthController):
             auth.partner_id, userdata.model_dump(exclude={"id"})
         )
 
-    async def get_login_providers(self):
-        """
-        Get available Login Providers List. Can also be used to display login providers on UI.
-        Use getLoginProviderRedirect API to redirect to this Login Provider to perform login.
-        """
-        auth_providers: List[
-            AuthOauthProviderORM
-        ] = await AuthOauthProviderORM.get_all()
-        return LoginProviderHttpResponse(
-            loginProviders=[
-                LoginProviderResponse(
-                    id=lp.id,
-                    name=lp.name,
-                    type=LoginProviderTypes.oauth2_auth_code,
-                    displayName=lp.body or "",
-                    displayIconUrl=lp.g2p_portal_login_image_icon_url or "",
-                )
-                for lp in auth_providers
-            ],
-        )
+    async def get_login_providers_db(self) -> List[LoginProvider]:
+        return [
+            ap.map_auth_provider_to_login_provider()
+            for ap in await AuthOauthProviderORM.get_all()
+        ]
 
-    # TODO Add Mapping for auth provider for other APIs
+    async def get_login_provider_db_by_id(self, id: int) -> LoginProvider:
+        ap = await AuthOauthProviderORM.get_by_id(id)
+        return ap.map_auth_provider_to_login_provider()
+
+    async def get_login_provider_db_by_iss(self, iss: str) -> LoginProvider:
+        ap = await AuthOauthProviderORM.get_auth_provider_from_iss(iss)
+        return ap.map_auth_provider_to_login_provider()

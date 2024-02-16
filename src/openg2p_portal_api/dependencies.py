@@ -3,6 +3,9 @@ from typing import Optional
 from fastapi import Request
 from fastapi.security import HTTPAuthorizationCredentials
 from openg2p_fastapi_auth.dependencies import JwtBearerAuth
+from openg2p_fastapi_auth.models.credentials import (
+    AuthCredentials as OriginalAuthCredentials,
+)
 from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
 from .config import Settings
@@ -16,8 +19,11 @@ class JwtBearerAuth(JwtBearerAuth):
     async def __call__(
         self, request: Request
     ) -> Optional[HTTPAuthorizationCredentials]:
-        res = await super().__call__(request)
+        res: OriginalAuthCredentials = await super().__call__(request)
+        if not res:
+            return None
 
+        # TODO: to be removed
         id_type_id = _config.auth_id_type_ids[res.iss]
 
         partners = await RegIDORM.get_partner_by_reg_id(id_type_id, res.sub)
