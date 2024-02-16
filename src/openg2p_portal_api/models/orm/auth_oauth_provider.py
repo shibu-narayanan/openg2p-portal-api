@@ -139,8 +139,8 @@ class AuthOauthProviderORM(BaseORMModel):
             authorization_parameters=OauthProviderParameters(
                 authorize_endpoint=self.auth_endpoint,
                 token_endpoint=self.token_endpoint,
-                validate_endpoint=self.validation_endpoint,
-                jwks_endpoint=self.jwks_uri,
+                validate_endpoint=self.validation_endpoint or "",
+                jwks_endpoint=self.jwks_uri or "",
                 client_id=self.client_id,
                 client_secret=self.client_secret,
                 client_assertion_type=OauthClientAssertionType[
@@ -150,10 +150,12 @@ class AuthOauthProviderORM(BaseORMModel):
                 if self.client_private_key
                 else None,
                 response_type=response_type,
-                redirect_uri=self.g2p_portal_oauth_callback_url,
+                redirect_uri=self.g2p_portal_oauth_callback_url or "",
                 scope=self.scope,
                 code_verifier=self.code_verifier,
-                extra_authorize_parameters=orjson.loads(self.extra_authorize_params),
+                extra_authorize_parameters=orjson.loads(
+                    self.extra_authorize_params or "{}"
+                ),
             ).model_dump(),
             active=self.g2p_self_service_allowed,
         )
