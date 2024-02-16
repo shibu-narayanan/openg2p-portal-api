@@ -147,7 +147,9 @@ class AuthOauthProviderORM(BaseORMModel):
                 client_assertion_type=OauthClientAssertionType[
                     self.client_authentication_method
                 ],
-                client_assertion_jwk=self.client_private_key.decode(),
+                client_assertion_jwk=self.client_private_key.decode()
+                if self.client_private_key
+                else None,
                 response_type=response_type,
                 redirect_uri=redirect_uri_base.rstrip("/") + "/oauth2/callback",
                 scope=self.scope,
