@@ -57,6 +57,8 @@ class OAuthController(OAuthController):
                 cookie_utils.get_response_cookies(res, "X-Access-Token")[-1],
                 cookie_utils.get_response_cookies(res, "X-ID-Token")[-1],
             )
-        await self.partner_service.check_and_create_partner(userinfo_dict)
+        await self.partner_service.check_and_create_partner(
+            userinfo_dict, id_type_config=id_type_config
+        )
 
         return res

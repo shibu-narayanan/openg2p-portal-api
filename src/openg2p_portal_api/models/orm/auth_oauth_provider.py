@@ -1,3 +1,4 @@
+import base64
 from typing import List, Optional
 
 import orjson
@@ -100,7 +101,8 @@ class AuthOauthProviderORM(BaseORMModel):
 
     @classmethod
     async def get_auth_id_type_config(cls, id: int = None, iss: str = None):
-        id_type_config = auth_id_type_config_cache.get(iss, None)
+        iss_id = id if id else iss
+        id_type_config = auth_id_type_config_cache.get().get(iss_id, None)
         if not id_type_config:
             ap = None
             if id:
@@ -116,7 +118,7 @@ class AuthOauthProviderORM(BaseORMModel):
                     "partner_creation_validate_response_mapping": ap.partner_creation_validate_response_mapping,
                     "partner_creation_date_format": ap.partner_creation_date_format,
                 }
-                auth_id_type_config_cache[iss] = id_type_config
+                auth_id_type_config_cache.get()[iss_id] = id_type_config
         return id_type_config
 
     def map_auth_provider_to_login_provider(self) -> LoginProvider:
@@ -146,7 +148,7 @@ class AuthOauthProviderORM(BaseORMModel):
                 client_assertion_type=OauthClientAssertionType[
                     self.client_authentication_method
                 ],
-                client_assertion_jwk=self.client_private_key.decode()
+                client_assertion_jwk=base64.b64decode(self.client_private_key)
                 if self.client_private_key
                 else None,
                 response_type=response_type,

@@ -32,6 +32,7 @@ class PartnerService(BaseService):
         )
 
         if not reg_id_res:
+            id_value = validation["sub"]
             validation = AuthOauthProviderORM.map_validation_response_partner_creation(
                 validation, id_type_config["partner_creation_validate_response_mapping"]
             )
@@ -43,6 +44,7 @@ class PartnerService(BaseService):
                 "email": validation.pop("email", ""),
                 "is_registrant": True,
                 "is_group": False,
+                "active": True,
             }
             partner_dict["name"] = self.create_partner_process_name(
                 partner_dict["family_name"],
@@ -78,7 +80,7 @@ class PartnerService(BaseService):
                     reg_id = RegIDORM(
                         partner=partner,
                         id_type=id_type_config["g2p_id_type"],
-                        value=validation["sub"],
+                        value=id_value,
                     )
                     phone_number = PartnerPhoneNoORM(
                         partner=partner,
@@ -150,7 +152,7 @@ class PartnerService(BaseService):
             if key in all_fields:
                 value = validation.pop(key)
                 if isinstance(value, dict) or isinstance(value, list):
-                    res[key] = orjson.dumps(value)
+                    res[key] = orjson.dumps(value).decode()
                 else:
                     res[key] = value
         return res
