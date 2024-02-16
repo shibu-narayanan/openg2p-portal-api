@@ -26,6 +26,7 @@ class AuthOauthProviderORM(BaseORMModel):
 
     body: Mapped[Optional[str]] = mapped_column()
     g2p_portal_login_image_icon_url: Mapped[Optional[str]] = mapped_column()
+    g2p_portal_oauth_callback_url: Mapped[Optional[str]] = mapped_column()
 
     client_id: Mapped[Optional[str]] = mapped_column()
     client_authentication_method: Mapped[str] = mapped_column()
@@ -118,9 +119,7 @@ class AuthOauthProviderORM(BaseORMModel):
                 auth_id_type_config_cache[iss] = id_type_config
         return id_type_config
 
-    def map_auth_provider_to_login_provider(
-        self, redirect_uri_base: str = None
-    ) -> LoginProvider:
+    def map_auth_provider_to_login_provider(self) -> LoginProvider:
         response_type = "token"
         if self.flow == "id_token":
             response_type = "id_token token"
@@ -151,7 +150,7 @@ class AuthOauthProviderORM(BaseORMModel):
                 if self.client_private_key
                 else None,
                 response_type=response_type,
-                redirect_uri=redirect_uri_base.rstrip("/") + "/oauth2/callback",
+                redirect_uri=self.g2p_portal_oauth_callback_url,
                 scope=self.scope,
                 code_verifier=self.code_verifier,
                 extra_authorize_parameters=orjson.loads(self.extra_authorize_params),
