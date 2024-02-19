@@ -170,8 +170,8 @@ class AuthController(AuthController):
 
     async def get_login_provider_db_by_id(self, id: int) -> LoginProvider:
         ap = await AuthOauthProviderORM.get_by_id(id)
-        return ap.map_auth_provider_to_login_provider()
+        return ap.map_auth_provider_to_login_provider() if ap else None
 
     async def get_login_provider_db_by_iss(self, iss: str) -> LoginProvider:
         ap = await AuthOauthProviderORM.get_auth_provider_from_iss(iss)
-        return ap.map_auth_provider_to_login_provider()
+        return ap.map_auth_provider_to_login_provider() if ap else None

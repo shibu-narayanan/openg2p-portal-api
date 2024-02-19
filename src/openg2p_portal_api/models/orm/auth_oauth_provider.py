@@ -94,7 +94,6 @@ class AuthOauthProviderORM(BaseORMModel):
                 )
                 .order_by(cls.id.asc())
             )
-
             result = await session.execute(stmt)
             response = result.scalar()
         return response
