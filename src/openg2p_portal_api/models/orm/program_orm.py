@@ -30,7 +30,7 @@ class ProgramORM(BaseORMModelWithId):
         ForeignKey("formio_builder.id")
     )
     form: Mapped[Optional[List["FormORM"]]] = relationship(back_populates="program")
-    cycles: Mapped[Optional[list["CycleORM"]]] = relationship(back_populates="program")
+    # cycles: Mapped[Optional[list["CycleORM"]]] = relationship(back_populates="program")
 
     @classmethod
     async def get_all_programs(cls) -> List["ProgramORM"]:

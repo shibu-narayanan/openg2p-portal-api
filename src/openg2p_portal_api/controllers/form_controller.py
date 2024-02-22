@@ -14,7 +14,14 @@ _config = Settings.get_config()
 
 
 class FormController(BaseController):
+    """
+    FormController handles operations related to form management for programs.
+    """
+
     def __init__(self, **kwargs):
+        """
+        Initializes the FormController with necessary components and configurations.
+        """
         super().__init__(**kwargs)
         self._form_service = FormService.get_component()
 
@@ -44,6 +51,9 @@ class FormController(BaseController):
 
     @property
     def form_service(self):
+        """
+        Provides access to the form service component.
+        """
         if not self._form_service:
             self._form_service = FormService.get_component()
         return self._form_service
@@ -51,6 +61,19 @@ class FormController(BaseController):
     async def get_program_form(
         self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
     ):
+        """
+        Retrieves the form for a specified program.
+
+        Args:
+
+            programid (int): The ID of the program whose form is to be retrieved.
+
+            auth (AuthCredentials): Authentication credentials, obtained via JWT Bearer Auth.
+
+        Returns:
+
+            ProgramForm: The form associated with the specified program.
+        """
         if not auth.partner_id:
             raise UnauthorizedError(
                 message="Unauthorized. Partner Not Found in Registry."
@@ -63,6 +86,21 @@ class FormController(BaseController):
         programreginfo: ProgramRegistrantInfo,
         auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
+        """
+        Creates or updates a draft of a form for a specified program.
+
+        Args:
+
+            programid (int): The ID of the program for which the form draft is to be created or updated.
+
+            programreginfo (ProgramRegistrantInfo): Information to be filled in the form.
+
+            auth (AuthCredentials): Authentication credentials, obtained via JWT Bearer Auth.
+
+        Returns:
+
+            ProgramForm: The created or updated form draft.
+        """
         if not auth.partner_id:
             raise UnauthorizedError(
                 message="Unauthorized. Partner Not Found in Registry."
@@ -78,6 +116,21 @@ class FormController(BaseController):
         programreginfo: ProgramRegistrantInfo,
         auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
+        """
+        Submits a form for a specified program.
+
+        Args:
+
+            programid (int): The ID of the program for which the form is submitted.
+
+            programreginfo (ProgramRegistrantInfo): Information to be submitted in the form.
+
+            auth (AuthCredentials): Authentication credentials, obtained via JWT Bearer Auth.
+
+        Returns:
+
+            ProgramForm: The submitted form.
+        """
         if not auth.partner_id:
             raise UnauthorizedError(
                 message="Unauthorized. Partner Not Found in Registry."

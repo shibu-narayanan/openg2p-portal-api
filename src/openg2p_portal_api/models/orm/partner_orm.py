@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel, BaseORMModelWithId
-from sqlalchemy import Boolean, Date, DateTime, String, select
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,7 +23,7 @@ class PartnerORM(BaseORMModelWithId):
     birthdate: Mapped[date] = mapped_column(Date())
     birth_place: Mapped[str] = mapped_column()
     notification_preference: Mapped[str] = mapped_column()
-    # phone: Mapped[str] = mapped_column()
+    phone: Mapped[str] = mapped_column()
 
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
@@ -76,11 +76,13 @@ class PartnerPhoneNoORM(BaseORMModel):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     phone_no: Mapped[str] = mapped_column()
-    partner_id: Mapped[int] = mapped_column()
+    partner_id: Mapped[int] = mapped_column(ForeignKey("res_partner.id"))
     date_collected: Mapped[date] = mapped_column()
 
+    partner: Mapped[PartnerORM] = relationship()
+
     @classmethod
-    async def get_partner_phone_details(cls, id: int) -> List["PartnerBankORM"]:
+    async def get_partner_phone_details(cls, id: int) -> List["PartnerPhoneNoORM"]:
         response = []
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:

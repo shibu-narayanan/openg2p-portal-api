@@ -1,9 +1,11 @@
-from typing import Dict
+from typing import Optional
 
 from openg2p_fastapi_auth.config import ApiAuthSettings
 from openg2p_fastapi_auth.config import Settings as AuthSettings
 from openg2p_fastapi_common.config import Settings
 from pydantic_settings import SettingsConfigDict
+
+from . import __version__
 
 
 class Settings(AuthSettings, Settings):
@@ -20,11 +22,8 @@ class Settings(AuthSettings, Settings):
     ***********************************
     """
 
-    openapi_version: str = "0.1.0"
-
-    login_providers_table_name: str = "g2p_self_service_login_providers"
-
-    auth_id_type_ids: Dict[str, int] = []
+    openapi_version: str = __version__
+    db_dbname: Optional[str] = "openg2pdb"
 
     auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
