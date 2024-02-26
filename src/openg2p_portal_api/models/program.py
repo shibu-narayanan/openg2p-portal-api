@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, validator
@@ -41,8 +40,8 @@ class ProgramSummary(BaseModel):
 
     program_name: Optional[str] = None
     enrollment_status: Optional[str] = None
-    total_funds_awaited: Optional[Decimal] = None
-    total_funds_received: Optional[Decimal] = None
+    total_funds_awaited: Optional[int] = None
+    total_funds_received: Optional[int] = None
 
 
 class ApplicationDetails(BaseModel):
@@ -59,7 +58,7 @@ class BenefitDetails(BaseModel):
 
     program_name: Optional[str] = None
     enrollment_status: Optional[str] = None
-    funds_awaited: Optional[Decimal] = None
-    funds_received: Optional[Decimal] = None
+    funds_awaited: Optional[int] = None
+    funds_received: Optional[int] = None
     entitlement_reference_number: Optional[int] = None
     # cycle_name: Optional[str]=None
