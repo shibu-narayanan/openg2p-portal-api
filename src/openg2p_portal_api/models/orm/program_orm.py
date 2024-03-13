@@ -157,7 +157,6 @@ class ProgramORM(BaseORMModelWithId):
                     ),
                 )
                 .outerjoin(ProgramORM, ProgramMembershipORM.program_id == ProgramORM.id)
-                .where(ProgramMembershipORM.partner_id == partner_id)
             )
             # print("####################################")
             # print(stmt)
