@@ -1,3 +1,5 @@
+from datetime import datetime
+import random
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
 from sqlalchemy.exc import IntegrityError
@@ -98,12 +100,16 @@ class FormService(BaseService):
                     program_id, registrant_id
                 )
             )
+            application_id = self._compute_application_id()
+            create_date = datetime.now()
             program_registrant_info = ProgramRegistrantInfoORM(
                 program_id=program_id,
                 program_membership_id=program_membership_id,
                 program_registrant_info=form_data.program_registrant_info,
                 state="active",
                 registrant_id=registrant_id,
+                application_id=application_id,
+                create_date=create_date,
             )
 
             try:
@@ -118,3 +124,10 @@ class FormService(BaseService):
                 return "Error: Duplicate entry or integrity violation"
 
         return "Successfully applied into the program!!"
+
+    def _compute_application_id(self):
+        d = datetime.today().strftime("%d")
+        m = datetime.today().strftime("%m")
+        y = datetime.today().strftime("%y")
+        random_number = str(random.randint(1, 100000))
+        return d + m + y + random_number.zfill(5)
