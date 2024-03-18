@@ -40,8 +40,8 @@ class ProgramSummary(BaseModel):
 
     program_name: Optional[str] = None
     enrollment_status: Optional[str] = None
-    total_funds_awaited: Optional[int] = None
-    total_funds_received: Optional[int] = None
+    total_funds_awaited: Optional[float] = None
+    total_funds_received: Optional[float] = None
 
 
 class ApplicationDetails(BaseModel):
@@ -58,7 +58,7 @@ class BenefitDetails(BaseModel):
 
     program_name: Optional[str] = None
     enrollment_status: Optional[str] = None
-    funds_awaited: Optional[int] = None
-    funds_received: Optional[int] = None
+    funds_awaited: Optional[float] = None
+    funds_received: Optional[float] = None
     entitlement_reference_number: Optional[int] = None
     # cycle_name: Optional[str]=None
