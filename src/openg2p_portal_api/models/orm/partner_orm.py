@@ -24,6 +24,7 @@ class PartnerORM(BaseORMModelWithId):
     birth_place: Mapped[str] = mapped_column()
     notification_preference: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column()
+    company_id: Mapped[Optional[int]] = mapped_column()
 
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
