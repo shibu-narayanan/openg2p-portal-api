@@ -64,14 +64,32 @@ class ProgramORM(BaseORMModelWithId):
     async def get_all_program_by_keyword(cls, keyword: str):
         response = []
         async_session_maker = async_sessionmaker(dbengine.get())
-        async with async_session_maker() as session:
+        async with async_session_maker() as session:            
+            # Create a case sensitive match condition
+            case_sensitive_match = cls.name.like(f"%{keyword}%") & cls.name.ilike(f"%{keyword}%")
+            # Create a case insensitive match condition
+            case_insensitive_match = cls.name.ilike(f"%{keyword}%")
+            
+            # First, select entries that match the keyword with the same case
             stmt = (
                 select(cls)
-                .filter(cls.name.like(f"%{keyword}%"))
+                .filter(case_sensitive_match)
                 .options(selectinload(cls.membership))
             )
             result = await session.execute(stmt)
-            response = list(result.scalars().all()) if result.scalars() else []
+            response.extend(list(result.scalars().all()))
+
+            # Next, select entries that match the keyword regardless of case, excluding already selected ones
+            stmt = (
+                select(cls)
+                .filter(case_insensitive_match)
+                .filter(~case_sensitive_match)
+                .options(selectinload(cls.membership))
+            )
+
+            result = await session.execute(stmt)
+            # response = list(result.scalars().all()) if result.scalars() else []
+            response.extend(list(result.scalars().all()))
         return response
 
     @classmethod
