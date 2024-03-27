@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
-from sqlalchemy import ForeignKey, String, and_, func, select
+from sqlalchemy import ForeignKey, String, and_, func, select, or_
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
@@ -176,6 +176,7 @@ class ProgramORM(BaseORMModelWithId):
                 )
                 .outerjoin(ProgramORM, ProgramMembershipORM.program_id == ProgramORM.id)
                 .where(ProgramMembershipORM.partner_id == partner_id)
+                .order_by(ProgramRegistrantInfoORM.create_date.desc())
             )
             # print("####################################")
             # print(stmt)
@@ -188,7 +189,7 @@ class ProgramORM(BaseORMModelWithId):
             stmt = (
                 select(
                     ProgramORM.name.label("program_name"),
-                    ProgramMembershipORM.state.label("enrollment_status"),
+                    EntitlementORM.date_approved.label("date_approved"),
                     func.coalesce(EntitlementORM.initial_amount, 0).label(
                         "funds_awaited"
                     ),
@@ -224,7 +225,16 @@ class ProgramORM(BaseORMModelWithId):
                         PaymentORM.status == "paid",
                     ),
                 )
-                .where(ProgramMembershipORM.partner_id == partner_id)
+            .where(
+                and_(
+                    ProgramMembershipORM.partner_id == partner_id,
+                    or_(
+                        EntitlementORM.ern.isnot(None),
+                        EntitlementORM.initial_amount != 0,
+                        PaymentORM.amount_paid != 0,
+                    ),
+                )
+            ) .order_by(EntitlementORM.date_approved.desc())
             )
             result = await session.execute(stmt)
         return result.all()

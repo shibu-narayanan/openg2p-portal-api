@@ -57,7 +57,7 @@ class BenefitDetails(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     program_name: Optional[str] = None
-    enrollment_status: Optional[str] = None
+    date_approved: Optional[datetime] = None
     funds_awaited: Optional[float] = None
     funds_received: Optional[float] = None
     entitlement_reference_number: Optional[int] = None
