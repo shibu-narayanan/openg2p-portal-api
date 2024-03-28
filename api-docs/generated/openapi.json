@@ -1495,16 +1495,17 @@
             ],
             "title": "Program Name"
           },
-          "enrollment_status": {
+          "date_approved": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Enrollment Status"
+            "title": "Date Approved"
           },
           "funds_awaited": {
             "anyOf": [
