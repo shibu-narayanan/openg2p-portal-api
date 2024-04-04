@@ -1,5 +1,6 @@
-from datetime import datetime
 import random
+from datetime import datetime
+
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
 from sqlalchemy.exc import IntegrityError
@@ -123,7 +124,9 @@ class FormService(BaseService):
             except IntegrityError:
                 return "Error: Duplicate entry or integrity violation"
 
-        return "Successfully applied into the program!!"
+        return (
+            f"Successfully applied into the program! Application ID: {application_id}"
+        )
 
     def _compute_application_id(self):
         d = datetime.today().strftime("%d")
