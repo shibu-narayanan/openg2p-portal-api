@@ -36,6 +36,12 @@ class AuthController(AuthController):
 
         self.router.add_api_route(
             "/profile",
+            self.get_profile,
+            responses={200: {"model": Profile}},
+            methods=["GET"],
+        )
+        self.router.add_api_route(
+            "/profile",
             self.update_profile,
             responses={200: {"model": Profile}},
             methods=["PUT"],

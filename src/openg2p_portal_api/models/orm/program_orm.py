@@ -20,6 +20,7 @@ class ProgramORM(BaseORMModelWithId):
 
     name: Mapped[str] = mapped_column(String())
     description: Mapped[str] = mapped_column(String())
+    state: Mapped[str] = mapped_column(String())
     is_multiple_form_submission: Mapped[str] = mapped_column()
 
     membership: Mapped[Optional[List["ProgramMembershipORM"]]] = relationship(
@@ -38,7 +39,10 @@ class ProgramORM(BaseORMModelWithId):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
             stmt = (
-                select(cls).options(selectinload(cls.membership)).order_by(cls.id.asc())
+                select(cls)
+                .filter(cls.state != "inactive", cls.state != "ended")
+                .options(selectinload(cls.membership))
+                .order_by(cls.id.asc())
             )
             result = await session.execute(stmt)
             response = list(result.scalars())
