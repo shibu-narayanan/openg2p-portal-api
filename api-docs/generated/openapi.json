@@ -806,7 +806,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BasicProfile"
+                  "$ref": "#/components/schemas/Profile"
                 }
               }
             }
@@ -1619,7 +1619,14 @@
             "$ref": "#/components/schemas/LoginProviderTypes"
           },
           "displayName": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
+            ],
             "title": "Displayname"
           },
           "displayIconUrl": {
@@ -1638,6 +1645,10 @@
         "title": "LoginProviderResponse"
       },
       "LoginProviderTypes": {
+        "type": "string",
+        "enum": [
+          "oauth2_auth_code"
+        ],
         "const": "oauth2_auth_code",
         "title": "LoginProviderTypes"
       },
