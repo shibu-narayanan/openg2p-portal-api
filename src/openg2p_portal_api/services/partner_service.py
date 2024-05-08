@@ -45,7 +45,7 @@ class PartnerService(BaseService):
                 "is_registrant": True,
                 "is_group": False,
                 "active": True,
-                "company_id":1,
+                "company_id": 1,
             }
             partner_dict["name"] = self.create_partner_process_name(
                 partner_dict["family_name"],

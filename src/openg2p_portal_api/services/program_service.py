@@ -90,7 +90,7 @@ class ProgramService(BaseService):
 
             return Program(**response_dict)
         else:
-            return {}
+            return {"message": f"Program with ID {programid} not found."}
 
     async def get_program_by_key_service(self, keyword: str):
         program_list = []

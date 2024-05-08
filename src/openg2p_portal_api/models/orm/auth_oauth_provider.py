@@ -88,7 +88,7 @@ class AuthOauthProviderORM(BaseORMModel):
                 select(cls)
                 .where(
                     and_(
-                        cls.g2p_self_service_allowed == True,
+                        cls.g2p_self_service_allowed == True,  # noqa: E712
                         cls.token_endpoint.ilike(f"%{iss}%"),
                     )
                 )

@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
-from sqlalchemy import ForeignKey, String, and_, func, select, or_
+from sqlalchemy import ForeignKey, String, and_, func, or_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
@@ -20,6 +20,7 @@ class ProgramORM(BaseORMModelWithId):
 
     name: Mapped[str] = mapped_column(String())
     description: Mapped[str] = mapped_column(String())
+    state: Mapped[str] = mapped_column(String())
     is_multiple_form_submission: Mapped[str] = mapped_column()
 
     membership: Mapped[Optional[List["ProgramMembershipORM"]]] = relationship(
@@ -38,7 +39,10 @@ class ProgramORM(BaseORMModelWithId):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
             stmt = (
-                select(cls).options(selectinload(cls.membership)).order_by(cls.id.asc())
+                select(cls)
+                .filter(cls.state != "inactive", cls.state != "ended")
+                .options(selectinload(cls.membership))
+                .order_by(cls.id.asc())
             )
             result = await session.execute(stmt)
             response = list(result.scalars())
@@ -64,12 +68,14 @@ class ProgramORM(BaseORMModelWithId):
     async def get_all_program_by_keyword(cls, keyword: str):
         response = []
         async_session_maker = async_sessionmaker(dbengine.get())
-        async with async_session_maker() as session:            
+        async with async_session_maker() as session:
             # Create a case sensitive match condition
-            case_sensitive_match = cls.name.like(f"%{keyword}%") & cls.name.ilike(f"%{keyword}%")
+            case_sensitive_match = cls.name.like(f"%{keyword}%") & cls.name.ilike(
+                f"%{keyword}%"
+            )
             # Create a case insensitive match condition
             case_insensitive_match = cls.name.ilike(f"%{keyword}%")
-            
+
             # First, select entries that match the keyword with the same case
             stmt = (
                 select(cls)
@@ -225,16 +231,17 @@ class ProgramORM(BaseORMModelWithId):
                         PaymentORM.status == "paid",
                     ),
                 )
-            .where(
-                and_(
-                    ProgramMembershipORM.partner_id == partner_id,
-                    or_(
-                        EntitlementORM.ern.isnot(None),
-                        EntitlementORM.initial_amount != 0,
-                        PaymentORM.amount_paid != 0,
-                    ),
+                .where(
+                    and_(
+                        ProgramMembershipORM.partner_id == partner_id,
+                        or_(
+                            EntitlementORM.ern.isnot(None),
+                            EntitlementORM.initial_amount != 0,
+                            PaymentORM.amount_paid != 0,
+                        ),
+                    )
                 )
-            ) .order_by(EntitlementORM.date_approved.desc())
+                .order_by(EntitlementORM.date_approved.desc())
             )
             result = await session.execute(stmt)
         return result.all()
