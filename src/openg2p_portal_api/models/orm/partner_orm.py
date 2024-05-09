@@ -22,7 +22,6 @@ class PartnerORM(BaseORMModelWithId):
     address: Mapped[str] = mapped_column()
     birthdate: Mapped[date] = mapped_column(Date())
     birth_place: Mapped[str] = mapped_column()
-    notification_preference: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column()
     company_id: Mapped[Optional[int]] = mapped_column()
 
@@ -30,9 +29,6 @@ class PartnerORM(BaseORMModelWithId):
 
     create_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
     write_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
-    display_name: Mapped[str] = mapped_column(
-        String(), default=lambda ctx: ctx.current_parameters["name"]
-    )
     type: Mapped[str] = mapped_column(String(), default="contact")
     is_registrant: Mapped[bool] = mapped_column(Boolean(), default=True)
     is_group: Mapped[bool] = mapped_column(Boolean(), default=False)

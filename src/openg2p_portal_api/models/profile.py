@@ -41,4 +41,3 @@ class Profile(BaseModel):
     birthdate: Optional[date] = None
     phone_numbers: List[PhoneNumber]
     birth_place: Optional[str] = None
-    notification_preference: Optional[str] = None

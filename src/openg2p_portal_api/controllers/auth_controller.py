@@ -138,7 +138,6 @@ class AuthController(AuthController):
             birthdate=partner_data.birthdate,
             phone_numbers=partner_phone_numbers,
             birth_place=partner_data.birth_place,
-            notification_preference=partner_data.notification_preference,
         )
 
     async def update_profile(
