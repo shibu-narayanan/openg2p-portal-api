@@ -9,7 +9,7 @@ jobs:
     name: Docker Build and Push
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets.docker_hub_organisation | 'openg2p' }}
+      NAMESPACE: ${{ secrets.docker_hub_organisation || 'openg2p' }}
       SERVICE_NAME: openg2p-selfservice-api
     steps:
       - uses: actions/checkout@v3
