@@ -1792,17 +1792,6 @@
               }
             ],
             "title": "Birth Place"
-          },
-          "notification_preference": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notification Preference"
           }
         },
         "type": "object",
