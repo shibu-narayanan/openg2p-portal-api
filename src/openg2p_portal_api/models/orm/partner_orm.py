@@ -3,7 +3,15 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel, BaseORMModelWithId
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, select
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    String,
+    select,
+)
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,7 +32,19 @@ class PartnerORM(BaseORMModelWithId):
     birth_place: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column()
     company_id: Mapped[Optional[int]] = mapped_column()
-
+    income: Mapped[Optional[int]] = mapped_column()
+    display_name: Mapped[str] = mapped_column()
+    area_id: Mapped[Optional[int]] = mapped_column()
+    civil_status: Mapped[str] = mapped_column()
+    occupation: Mapped[str] = mapped_column()
+    district: Mapped[str] = mapped_column()
+    birthdate_not_exact: Mapped[bool] = mapped_column(Boolean(), default=False)
+    registration_date: Mapped[date] = mapped_column(Date())
+    notification_preference: Mapped[str] = mapped_column(
+        String,
+        CheckConstraint("notification_preference IN ('none', 'email', 'sms', 'both')"),
+        default="none",
+    )
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
     create_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
