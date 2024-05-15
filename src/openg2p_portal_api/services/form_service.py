@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from ..models.form import ProgramForm
+from ..models.orm.partner_orm import PartnerORM
 from ..models.orm.program_orm import ProgramORM
 from ..models.orm.program_registrant_info_orm import (
     ProgramRegistrantInfoDraftORM,
@@ -103,10 +104,23 @@ class FormService(BaseService):
             )
             application_id = self._compute_application_id()
             create_date = datetime.now()
+
+            partner_info = await PartnerORM.get_partner_data(registrant_id)
+            if partner_info:
+                updated_partner_info = await self.update_partner_info(
+                    session, partner_info, form_data.program_registrant_info
+                )
+
+                cleaned_program_registrant_info = self.clean_program_registrant_info(
+                    form_data.program_registrant_info, updated_partner_info
+                )
+            else:
+                cleaned_program_registrant_info = form_data.program_registrant_info
+
             program_registrant_info = ProgramRegistrantInfoORM(
                 program_id=program_id,
                 program_membership_id=program_membership_id,
-                program_registrant_info=form_data.program_registrant_info,
+                program_registrant_info=cleaned_program_registrant_info,
                 state="active",
                 registrant_id=registrant_id,
                 application_id=application_id,
@@ -134,3 +148,23 @@ class FormService(BaseService):
         y = datetime.today().strftime("%y")
         random_number = str(random.randint(1, 100000))
         return d + m + y + random_number.zfill(5)
+
+    async def update_partner_info(self, session, partner_info, program_registrant_info):
+        # Update partner_info with fields from program_registrant_info
+        updated_fields = {}
+        for key, value in program_registrant_info.items():
+            if hasattr(partner_info, key) and getattr(partner_info, key) != value:
+                setattr(partner_info, key, value)
+                updated_fields[key] = value
+        session.add(partner_info)
+        await session.commit()
+        return updated_fields
+
+    def clean_program_registrant_info(self, program_registrant_info, updated_fields):
+        # Remove updated fields from program_registrant_info
+        cleaned_info = {
+            key: value
+            for key, value in program_registrant_info.items()
+            if key not in updated_fields
+        }
+        return cleaned_info
