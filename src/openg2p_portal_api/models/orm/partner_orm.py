@@ -5,12 +5,12 @@ from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel, BaseORMModelWithId
 from sqlalchemy import (
     Boolean,
-    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
     String,
     select,
+    text,
 )
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -32,19 +32,7 @@ class PartnerORM(BaseORMModelWithId):
     birth_place: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column()
     company_id: Mapped[Optional[int]] = mapped_column()
-    income: Mapped[Optional[int]] = mapped_column()
-    display_name: Mapped[str] = mapped_column()
-    area_id: Mapped[Optional[int]] = mapped_column()
-    civil_status: Mapped[str] = mapped_column()
-    occupation: Mapped[str] = mapped_column()
-    district: Mapped[str] = mapped_column()
-    birthdate_not_exact: Mapped[bool] = mapped_column(Boolean(), default=False)
     registration_date: Mapped[date] = mapped_column(Date())
-    notification_preference: Mapped[str] = mapped_column(
-        String,
-        CheckConstraint("notification_preference IN ('none', 'email', 'sms', 'both')"),
-        default="none",
-    )
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
     create_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
@@ -61,6 +49,18 @@ class PartnerORM(BaseORMModelWithId):
 
             result = await session.execute(stmt)
         return result.scalar()
+
+    @classmethod
+    async def get_partner_fields(cls):
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            result = await session.execute(
+                text(
+                    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = :tbl_name"
+                ),
+                params={"tbl_name": cls.__tablename__},
+            )
+        return result.scalars().all()
 
 
 class PartnerBankORM(BaseORMModelWithId):

@@ -3,9 +3,11 @@ from datetime import datetime
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from ..context import partner_fields_cache
 from ..models.form import ProgramForm
 from ..models.orm.partner_orm import PartnerORM
 from ..models.orm.program_orm import ProgramORM
@@ -152,12 +154,20 @@ class FormService(BaseService):
     async def update_partner_info(self, session, partner_info, program_registrant_info):
         # Update partner_info with fields from program_registrant_info
         updated_fields = {}
+        partner_fields = await self.get_partner_fields()
         for key, value in program_registrant_info.items():
-            if hasattr(partner_info, key) and getattr(partner_info, key) != value:
-                setattr(partner_info, key, value)
+            # if hasattr(partner_info, key) and getattr(partner_info, key) != value:
+            if key in partner_fields:
                 updated_fields[key] = value
-        session.add(partner_info)
-        await session.commit()
+        if updated_fields:
+            set_clause = ", ".join(
+                [f"{key} = '{value}'" for key, value in updated_fields.items()]
+            )
+            await session.execute(
+                text(
+                    f"UPDATE {PartnerORM.__tablename__} SET {set_clause} WHERE id='{partner_info.id}'"
+                )
+            )
         return updated_fields
 
     def clean_program_registrant_info(self, program_registrant_info, updated_fields):
@@ -168,3 +178,11 @@ class FormService(BaseService):
             if key not in updated_fields
         }
         return cleaned_info
+
+    async def get_partner_fields(self):
+        partner_field = partner_fields_cache.get()
+        if partner_field:
+            return partner_field
+        partner_field = await PartnerORM.get_partner_fields()
+        partner_fields_cache.set(partner_field)
+        return partner_field
