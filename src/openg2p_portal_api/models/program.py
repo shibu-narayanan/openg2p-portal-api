@@ -29,6 +29,8 @@ class Program(ProgramBase):
     is_portal_form_mapped: Optional[bool] = False
     is_multiple_form_submission: Optional[bool] = False
     last_application_status: Optional[str] = None
+    is_reimbursement_program: Optional[bool] = None
+    active: Optional[bool] = None
 
     @validator("is_portal_form_mapped", pre=True, always=True)
     def is_program_form_mapped(cls, v, values):
