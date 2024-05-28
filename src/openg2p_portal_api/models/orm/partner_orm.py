@@ -32,7 +32,7 @@ class PartnerORM(BaseORMModelWithId):
     birth_place: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column()
     company_id: Mapped[Optional[int]] = mapped_column()
-    registration_date: Mapped[date] = mapped_column(Date())
+    registration_date: Mapped[date] = mapped_column(Date(), default=date.today)
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
     create_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
