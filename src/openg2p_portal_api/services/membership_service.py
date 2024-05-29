@@ -10,7 +10,7 @@ class MembershipService(BaseService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def check_and_create_mem(self, programid: int, partnerid: int):
+    async def check_and_create_mem(self, programid: int, partnerid: int) -> int:
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
             membership = await ProgramMembershipORM.get_membership_by_id(
@@ -25,6 +25,7 @@ class MembershipService(BaseService):
                 try:
                     session.add(membership)
                     await session.commit()
+                    await session.refresh(membership)
                 except IntegrityError:
                     return "Could not add to registrant to program!!"
 

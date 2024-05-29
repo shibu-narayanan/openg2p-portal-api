@@ -3,6 +3,7 @@ from datetime import datetime
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -95,9 +96,26 @@ class FormService(BaseService):
     ):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
-            program_membership_id = await self.membership_service.check_and_create_mem(
-                program_id, registrant_id
+            existing_application = await session.execute(
+                select(ProgramRegistrantInfoORM).filter(
+                    ProgramRegistrantInfoORM.program_id == program_id,
+                    ProgramRegistrantInfoORM.registrant_id == registrant_id,
+                    ProgramRegistrantInfoORM.state.in_(
+                        ["active", "inprogress", "applied"]
+                    ),
+                )
             )
+            if existing_application.scalars().first():
+                return "Error: There is already an active or in-progress application for this program."
+
+            try:
+                program_membership_id = (
+                    await self.membership_service.check_and_create_mem(
+                        program_id, registrant_id
+                    )
+                )
+            except ValueError as e:
+                return str(e)
             get_draft_reg_info = (
                 await ProgramRegistrantInfoDraftORM.get_draft_reg_info_by_id(
                     program_id, registrant_id
