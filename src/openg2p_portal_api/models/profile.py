@@ -27,17 +27,22 @@ class PhoneNumber(BaseModel):
 
 
 class Profile(BaseModel):
-    model_config = ConfigDict()
-
-    id: Optional[int] = None
-    ids: List[RegistrantID]
+    ids: Optional[List[RegistrantID]] = None
     email: Optional[str] = None
     gender: Optional[str] = None
     # address: Optional[dict] = {}
-    bank_ids: List[BankDetails]
+    bank_ids: Optional[List[BankDetails]] = None
     addl_name: Optional[str] = None
     given_name: Optional[str] = None
     family_name: Optional[str] = None
     birthdate: Optional[date] = None
-    phone_numbers: List[PhoneNumber]
+    phone_numbers: Optional[List[PhoneNumber]] = None
     birth_place: Optional[str] = None
+
+
+class UpdateProfile(Profile):
+    pass
+
+
+class GetProfile(Profile):
+    id: Optional[int] = None

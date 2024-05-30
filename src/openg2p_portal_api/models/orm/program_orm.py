@@ -22,6 +22,8 @@ class ProgramORM(BaseORMModelWithId):
     description: Mapped[str] = mapped_column(String())
     state: Mapped[str] = mapped_column(String())
     is_multiple_form_submission: Mapped[str] = mapped_column()
+    is_reimbursement_program: Mapped[bool] = mapped_column()
+    active: Mapped[bool] = mapped_column()
 
     membership: Mapped[Optional[List["ProgramMembershipORM"]]] = relationship(
         back_populates="program"
@@ -40,7 +42,15 @@ class ProgramORM(BaseORMModelWithId):
         async with async_session_maker() as session:
             stmt = (
                 select(cls)
-                .filter(cls.state != "inactive", cls.state != "ended")
+                .filter(
+                    cls.state != "inactive",
+                    cls.state != "ended",
+                    cls.active.is_(True),
+                    or_(
+                        cls.is_reimbursement_program.is_(False),
+                        cls.is_reimbursement_program.is_(None),
+                    ),
+                )
                 .options(selectinload(cls.membership))
                 .order_by(cls.id.asc())
             )

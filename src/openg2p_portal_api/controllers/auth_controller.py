@@ -4,6 +4,7 @@ from fastapi import Depends
 from openg2p_fastapi_auth.controllers.auth_controller import AuthController
 from openg2p_fastapi_auth.models.orm.login_provider import LoginProvider
 from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
+from sqlalchemy.exc import IntegrityError
 
 from ..config import Settings
 from ..dependencies import JwtBearerAuth
@@ -16,7 +17,7 @@ from ..models.orm.partner_orm import (
     PartnerPhoneNoORM,
 )
 from ..models.orm.reg_id_orm import RegIDORM, RegIDTypeORM
-from ..models.profile import Profile
+from ..models.profile import GetProfile, UpdateProfile
 from ..services.partner_service import PartnerService
 
 _config = Settings.get_config()
@@ -37,13 +38,12 @@ class AuthController(AuthController):
         self.router.add_api_route(
             "/profile",
             self.get_profile,
-            responses={200: {"model": Profile}},
+            responses={200: {"model": GetProfile}},
             methods=["GET"],
         )
         self.router.add_api_route(
             "/profile",
             self.update_profile,
-            responses={200: {"model": Profile}},
             methods=["PUT"],
         )
 
@@ -125,7 +125,7 @@ class AuthController(AuthController):
                 }
             )
 
-        return Profile(
+        return GetProfile(
             id=partner_data.id,
             ids=partner_ids,
             email=partner_data.email,
@@ -142,7 +142,7 @@ class AuthController(AuthController):
 
     async def update_profile(
         self,
-        userdata: Profile,
+        userdata: UpdateProfile,
         auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
         """
@@ -158,14 +158,13 @@ class AuthController(AuthController):
 
             Confirmation or updated profile data after the update.
         """
-        if userdata.id is None or userdata.id != auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
+        try:
+            await self.partner_service.update_partner_info(
+                auth.partner_id, userdata.model_dump(exclude={"id"})
             )
-
-        return await self.partner_service.update_partner_data(
-            auth.partner_id, userdata.model_dump(exclude={"id"})
-        )
+        except IntegrityError:
+            return "Could not add to registrant to program!!"
+        return "Updated the partner info"
 
     async def get_login_providers_db(self) -> List[LoginProvider]:
         return [
