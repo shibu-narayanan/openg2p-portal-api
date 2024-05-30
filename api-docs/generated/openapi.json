@@ -806,7 +806,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Profile"
+                  "$ref": "#/components/schemas/GetProfile"
                 }
               }
             }
@@ -880,7 +880,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Profile"
+                "$ref": "#/components/schemas/UpdateProfile"
               }
             }
           }
@@ -890,9 +890,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Profile"
-                }
+                "schema": {}
               }
             }
           },
@@ -1576,6 +1574,143 @@
         "type": "object",
         "title": "ErrorResponse"
       },
+      "GetProfile": {
+        "properties": {
+          "ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RegistrantID"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "bank_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BankDetails"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Ids"
+          },
+          "addl_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addl Name"
+          },
+          "given_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Given Name"
+          },
+          "family_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Name"
+          },
+          "birthdate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birthdate"
+          },
+          "phone_numbers": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PhoneNumber"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Numbers"
+          },
+          "birth_place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birth Place"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "title": "GetProfile"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1681,127 +1816,6 @@
         "type": "object",
         "title": "PhoneNumber"
       },
-      "Profile": {
-        "properties": {
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
-          },
-          "ids": {
-            "items": {
-              "$ref": "#/components/schemas/RegistrantID"
-            },
-            "type": "array",
-            "title": "Ids"
-          },
-          "email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Email"
-          },
-          "gender": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gender"
-          },
-          "bank_ids": {
-            "items": {
-              "$ref": "#/components/schemas/BankDetails"
-            },
-            "type": "array",
-            "title": "Bank Ids"
-          },
-          "addl_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Addl Name"
-          },
-          "given_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Given Name"
-          },
-          "family_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Family Name"
-          },
-          "birthdate": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Birthdate"
-          },
-          "phone_numbers": {
-            "items": {
-              "$ref": "#/components/schemas/PhoneNumber"
-            },
-            "type": "array",
-            "title": "Phone Numbers"
-          },
-          "birth_place": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Birth Place"
-          }
-        },
-        "type": "object",
-        "required": [
-          "ids",
-          "bank_ids",
-          "phone_numbers"
-        ],
-        "title": "Profile"
-      },
       "Program": {
         "properties": {
           "id": {
@@ -1904,6 +1918,28 @@
               }
             ],
             "title": "Last Application Status"
+          },
+          "is_reimbursement_program": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Reimbursement Program"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
           }
         },
         "type": "object",
@@ -2137,6 +2173,132 @@
         },
         "type": "object",
         "title": "RegistrantID"
+      },
+      "UpdateProfile": {
+        "properties": {
+          "ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RegistrantID"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "bank_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BankDetails"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Ids"
+          },
+          "addl_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addl Name"
+          },
+          "given_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Given Name"
+          },
+          "family_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Name"
+          },
+          "birthdate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birthdate"
+          },
+          "phone_numbers": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PhoneNumber"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Numbers"
+          },
+          "birth_place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birth Place"
+          }
+        },
+        "type": "object",
+        "title": "UpdateProfile"
       },
       "ValidationError": {
         "properties": {
