@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
-from sqlalchemy import ForeignKey, String, and_, func, or_, select
+from sqlalchemy import DateTime, ForeignKey, String, and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
@@ -24,7 +25,7 @@ class ProgramORM(BaseORMModelWithId):
     is_multiple_form_submission: Mapped[str] = mapped_column()
     is_reimbursement_program: Mapped[bool] = mapped_column()
     active: Mapped[bool] = mapped_column()
-
+    create_date: Mapped[datetime] = mapped_column(DateTime())
     membership: Mapped[Optional[List["ProgramMembershipORM"]]] = relationship(
         back_populates="program"
     )
@@ -52,7 +53,7 @@ class ProgramORM(BaseORMModelWithId):
                     ),
                 )
                 .options(selectinload(cls.membership))
-                .order_by(cls.id.asc())
+                .order_by(desc(cls.create_date))
             )
             result = await session.execute(stmt)
             response = list(result.scalars())
@@ -125,6 +126,26 @@ class ProgramORM(BaseORMModelWithId):
     async def get_program_summary(cls, partner_id: int) -> List["ProgramORM"]:
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
+            latest_application_subquery = (
+                select(
+                    ProgramRegistrantInfoORM.program_id,
+                    func.max(ProgramRegistrantInfoORM.create_date).label(
+                        "latest_application_date"
+                    ),
+                )
+                .join(
+                    ProgramMembershipORM,
+                    and_(
+                        ProgramMembershipORM.partner_id
+                        == ProgramRegistrantInfoORM.registrant_id,
+                        ProgramMembershipORM.program_id
+                        == ProgramRegistrantInfoORM.program_id,
+                    ),
+                )
+                .where(ProgramMembershipORM.partner_id == partner_id)
+                .group_by(ProgramRegistrantInfoORM.program_id)
+                .subquery()
+            )
             stmt = (
                 select(
                     ProgramORM.name.label("program_name"),
@@ -164,8 +185,17 @@ class ProgramORM(BaseORMModelWithId):
                         PaymentORM.status == "paid",
                     ),
                 )
+                .outerjoin(
+                    latest_application_subquery,
+                    ProgramORM.id == latest_application_subquery.c.program_id,
+                )
                 .where(ProgramMembershipORM.partner_id == partner_id)
-                .group_by(ProgramORM.name, ProgramMembershipORM.state)
+                .group_by(
+                    ProgramORM.name,
+                    ProgramMembershipORM.state,
+                    latest_application_subquery.c.latest_application_date,
+                )
+                .order_by(desc(latest_application_subquery.c.latest_application_date))
             )
             result = await session.execute(stmt)
         return result.all()
