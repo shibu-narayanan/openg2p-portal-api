@@ -1940,6 +1940,18 @@
               }
             ],
             "title": "Active"
+          },
+          "create_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Date"
           }
         },
         "type": "object",
