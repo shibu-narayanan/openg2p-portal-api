@@ -31,6 +31,7 @@ class Program(ProgramBase):
     last_application_status: Optional[str] = None
     is_reimbursement_program: Optional[bool] = None
     active: Optional[bool] = None
+    create_date: Optional[datetime] = None
 
     @validator("is_portal_form_mapped", pre=True, always=True)
     def is_program_form_mapped(cls, v, values):
