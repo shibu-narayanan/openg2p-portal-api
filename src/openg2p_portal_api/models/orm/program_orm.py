@@ -150,9 +150,10 @@ class ProgramORM(BaseORMModelWithId):
                 select(
                     ProgramORM.name.label("program_name"),
                     ProgramMembershipORM.state.label("enrollment_status"),
-                    func.coalesce(func.sum(EntitlementORM.initial_amount), 0).label(
-                        "total_funds_awaited"
-                    ),
+                    (
+                        func.coalesce(func.sum(EntitlementORM.initial_amount), 0)
+                        - func.coalesce(func.sum(PaymentORM.amount_paid), 0)
+                    ).label("total_funds_awaited"),
                     func.coalesce(func.sum(PaymentORM.amount_paid), 0).label(
                         "total_funds_received"
                     ),
@@ -236,9 +237,10 @@ class ProgramORM(BaseORMModelWithId):
                 select(
                     ProgramORM.name.label("program_name"),
                     EntitlementORM.date_approved.label("date_approved"),
-                    func.coalesce(EntitlementORM.initial_amount, 0).label(
-                        "funds_awaited"
-                    ),
+                    (
+                        func.coalesce(EntitlementORM.initial_amount, 0)
+                        - func.coalesce(PaymentORM.amount_paid, 0)
+                    ).label("funds_awaited"),
                     func.coalesce(PaymentORM.amount_paid, 0).label("funds_received"),
                     EntitlementORM.ern.label("entitlement_reference_number"),
                     # CycleORM.name.label("cycle_name")
