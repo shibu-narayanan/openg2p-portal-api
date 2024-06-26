@@ -99,6 +99,22 @@ class FormService(BaseService):
     ):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
+            program = await session.get(
+                ProgramORM, program_id
+            )  # Fetch the ProgramORM object
+            if not program:
+                return "Error: Program not found."
+            # Check if multiple form submissions are allowed before checking for existing applications
+            if not program.is_multiple_form_submission:
+                application = await session.execute(
+                    select(ProgramRegistrantInfoORM).filter(
+                        ProgramRegistrantInfoORM.program_id == program_id,
+                        ProgramRegistrantInfoORM.registrant_id == registrant_id,
+                    )
+                )
+                if application.scalars().first():
+                    return "Error: Multiple form submissions are not allowed for this program."
+
             existing_application = await session.execute(
                 select(ProgramRegistrantInfoORM).filter(
                     ProgramRegistrantInfoORM.program_id == program_id,
