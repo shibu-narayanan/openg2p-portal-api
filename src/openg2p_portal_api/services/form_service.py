@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
 
+from fastapi import HTTPException, status
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
 from sqlalchemy import select
@@ -57,7 +58,9 @@ class FormService(BaseService):
 
             return ProgramForm(**response_dict)
         else:
-            return response_dict
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Program ID not Found"
+            )
 
     async def create_form_draft(self, program_id: int, form_data, registrant_id: int):
         async_session_maker = async_sessionmaker(dbengine.get())
