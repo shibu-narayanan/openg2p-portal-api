@@ -2,13 +2,17 @@ from typing import Annotated
 
 from fastapi import Depends
 from openg2p_fastapi_common.controller import BaseController
-from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
+from openg2p_fastapi_common.errors.http_exceptions import (
+    BadRequestError,
+    UnauthorizedError,
+)
 
 from ..config import Settings
 from ..dependencies import JwtBearerAuth
 from ..models.credentials import AuthCredentials
 from ..models.form import ProgramForm, ProgramRegistrantInfo
 from ..services.form_service import FormService
+from ..services.program_service import ProgramService
 
 _config = Settings.get_config()
 
@@ -24,6 +28,7 @@ class FormController(BaseController):
         """
         super().__init__(**kwargs)
         self._form_service = FormService.get_component()
+        self._program_service = ProgramService.get_component()
 
         self.router.prefix += "/form"
         self.router.tags += ["portal"]
@@ -57,6 +62,15 @@ class FormController(BaseController):
         if not self._form_service:
             self._form_service = FormService.get_component()
         return self._form_service
+
+    @property
+    def program_service(self):
+        """
+        Provides access to the form service component.
+        """
+        if not self._program_service:
+            self._program_service = ProgramService.get_component()
+        return self._program_service
 
     async def get_program_form(
         self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
@@ -134,6 +148,14 @@ class FormController(BaseController):
         if not auth.partner_id:
             raise UnauthorizedError(
                 message="Unauthorized. Partner Not Found in Registry."
+            )
+
+        program = await self.program_service.get_program_by_id_service(
+            programid, auth.partner_id
+        )
+        if not program.is_portal_form_mapped:
+            raise BadRequestError(
+                message="Form submission is not allowed. Portal form is not mapped to this program."
             )
 
         return await self.form_service.submit_application_form(

@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
 
+from fastapi import HTTPException, status
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
 from sqlalchemy import select
@@ -57,7 +58,9 @@ class FormService(BaseService):
 
             return ProgramForm(**response_dict)
         else:
-            return response_dict
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Program ID not Found"
+            )
 
     async def create_form_draft(self, program_id: int, form_data, registrant_id: int):
         async_session_maker = async_sessionmaker(dbengine.get())
@@ -96,6 +99,22 @@ class FormService(BaseService):
     ):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
+            program = await session.get(
+                ProgramORM, program_id
+            )  # Fetch the ProgramORM object
+            if not program:
+                return "Error: Program not found."
+            # Check if multiple form submissions are allowed before checking for existing applications
+            if not program.is_multiple_form_submission:
+                application = await session.execute(
+                    select(ProgramRegistrantInfoORM).filter(
+                        ProgramRegistrantInfoORM.program_id == program_id,
+                        ProgramRegistrantInfoORM.registrant_id == registrant_id,
+                    )
+                )
+                if application.scalars().first():
+                    return "Error: Multiple form submissions are not allowed for this program."
+
             existing_application = await session.execute(
                 select(ProgramRegistrantInfoORM).filter(
                     ProgramRegistrantInfoORM.program_id == program_id,
