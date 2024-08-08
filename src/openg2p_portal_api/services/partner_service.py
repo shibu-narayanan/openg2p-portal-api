@@ -37,8 +37,8 @@ class PartnerService(BaseService):
 
         if not reg_id_res:
             id_value = validation["sub"]
-            validation = AuthOauthProviderORM.map_validation_response_partner_creation(
-                validation, id_type_config["partner_creation_validate_response_mapping"]
+            validation = AuthOauthProviderORM.map_validation_response(
+                validation, id_type_config["token_map"]
             )
             name = validation.pop("name", "")
             partner_dict = {
@@ -49,7 +49,7 @@ class PartnerService(BaseService):
                 "is_registrant": True,
                 "is_group": False,
                 "active": True,
-                "company_id": 1,
+                "company_id": id_type_config["company_id"],
             }
             partner_dict["name"] = self.create_partner_process_name(
                 partner_dict["family_name"],
@@ -61,7 +61,7 @@ class PartnerService(BaseService):
             )
             partner_dict["birthdate"] = self.create_partner_process_birthdate(
                 validation.pop("birthdate", None),
-                date_format=id_type_config["partner_creation_date_format"],
+                date_format=id_type_config["date_format"],
             )
             phone = validation.pop("phone", "")
             partner_dict["phone"] = phone
@@ -71,10 +71,10 @@ class PartnerService(BaseService):
             #     validation.pop("picture", None)
             # )
 
+            partner_fields = await self.get_partner_fields()
             partner_dict.update(
                 self.create_partner_process_other_fields(
-                    validation,
-                    id_type_config["partner_creation_validate_response_mapping"],
+                    validation, id_type_config["token_map"], partner_fields
                 )
             )
 
@@ -159,11 +159,13 @@ class PartnerService(BaseService):
     #             image_parsed = base64.b64encode(response.read())
     #     return image_parsed
 
-    def create_partner_process_other_fields(self, validation: dict, mapping: str):
+    def create_partner_process_other_fields(
+        self, validation: dict, mapping: str, partner_fields: list[str]
+    ):
         res = {}
         all_fields = [pair.split(":")[0].strip() for pair in mapping.split(" ")]
         for key in list(validation):
-            if key in all_fields:
+            if key in all_fields and key in partner_fields:
                 value = validation.pop(key)
                 if isinstance(value, dict) or isinstance(value, list):
                     res[key] = orjson.dumps(value).decode()
