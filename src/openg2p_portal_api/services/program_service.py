@@ -30,6 +30,10 @@ class ProgramService(BaseService):
                     "self_service_portal_form": program.self_service_portal_form,
                     "is_multiple_form_submission": program.is_multiple_form_submission,
                     "last_application_status": "Not submitted any application",
+                    # "create date":program.create_date,
+                    "create_date": program.create_date.isoformat()
+                    if program.create_date
+                    else None,
                 }
                 membership = program.membership
                 if membership:
@@ -90,7 +94,7 @@ class ProgramService(BaseService):
 
             return Program(**response_dict)
         else:
-            return {}
+            return {"message": f"Program with ID {programid} not found."}
 
     async def get_program_by_key_service(self, keyword: str):
         program_list = []

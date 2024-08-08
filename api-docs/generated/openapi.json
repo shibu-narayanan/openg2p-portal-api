@@ -806,7 +806,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BasicProfile"
+                  "$ref": "#/components/schemas/GetProfile"
                 }
               }
             }
@@ -880,7 +880,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Profile"
+                "$ref": "#/components/schemas/UpdateProfile"
               }
             }
           }
@@ -890,9 +890,7 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Profile"
-                }
+                "schema": {}
               }
             }
           },
@@ -1495,16 +1493,17 @@
             ],
             "title": "Program Name"
           },
-          "enrollment_status": {
+          "date_approved": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Enrollment Status"
+            "title": "Date Approved"
           },
           "funds_awaited": {
             "anyOf": [
@@ -1575,118 +1574,20 @@
         "type": "object",
         "title": "ErrorResponse"
       },
-      "HTTPValidationError": {
+      "GetProfile": {
         "properties": {
-          "detail": {
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            },
-            "type": "array",
-            "title": "Detail"
-          }
-        },
-        "type": "object",
-        "title": "HTTPValidationError"
-      },
-      "LoginProviderHttpResponse": {
-        "properties": {
-          "loginProviders": {
-            "items": {
-              "$ref": "#/components/schemas/LoginProviderResponse"
-            },
-            "type": "array",
-            "title": "Loginproviders"
-          }
-        },
-        "type": "object",
-        "required": [
-          "loginProviders"
-        ],
-        "title": "LoginProviderHttpResponse"
-      },
-      "LoginProviderResponse": {
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "type": {
-            "$ref": "#/components/schemas/LoginProviderTypes"
-          },
-          "displayName": {
-            "type": "string",
-            "title": "Displayname"
-          },
-          "displayIconUrl": {
-            "type": "string",
-            "title": "Displayiconurl"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "type",
-          "displayName",
-          "displayIconUrl"
-        ],
-        "title": "LoginProviderResponse"
-      },
-      "LoginProviderTypes": {
-        "const": "oauth2_auth_code",
-        "title": "LoginProviderTypes"
-      },
-      "PhoneNumber": {
-        "properties": {
-          "phone_no": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone No"
-          },
-          "date_collected": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Date Collected"
-          }
-        },
-        "type": "object",
-        "title": "PhoneNumber"
-      },
-      "Profile": {
-        "properties": {
-          "id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Id"
-          },
           "ids": {
-            "items": {
-              "$ref": "#/components/schemas/RegistrantID"
-            },
-            "type": "array",
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RegistrantID"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Ids"
           },
           "email": {
@@ -1712,10 +1613,17 @@
             "title": "Gender"
           },
           "bank_ids": {
-            "items": {
-              "$ref": "#/components/schemas/BankDetails"
-            },
-            "type": "array",
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BankDetails"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Bank Ids"
           },
           "addl_name": {
@@ -1764,10 +1672,17 @@
             "title": "Birthdate"
           },
           "phone_numbers": {
-            "items": {
-              "$ref": "#/components/schemas/PhoneNumber"
-            },
-            "type": "array",
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PhoneNumber"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Phone Numbers"
           },
           "birth_place": {
@@ -1781,7 +1696,100 @@
             ],
             "title": "Birth Place"
           },
-          "notification_preference": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "title": "GetProfile"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LoginProviderHttpResponse": {
+        "properties": {
+          "loginProviders": {
+            "items": {
+              "$ref": "#/components/schemas/LoginProviderResponse"
+            },
+            "type": "array",
+            "title": "Loginproviders"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loginProviders"
+        ],
+        "title": "LoginProviderHttpResponse"
+      },
+      "LoginProviderResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LoginProviderTypes"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "displayIconUrl": {
+            "type": "string",
+            "title": "Displayiconurl"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "displayName",
+          "displayIconUrl"
+        ],
+        "title": "LoginProviderResponse"
+      },
+      "LoginProviderTypes": {
+        "type": "string",
+        "enum": [
+          "oauth2_auth_code"
+        ],
+        "const": "oauth2_auth_code",
+        "title": "LoginProviderTypes"
+      },
+      "PhoneNumber": {
+        "properties": {
+          "phone_no": {
             "anyOf": [
               {
                 "type": "string"
@@ -1790,16 +1798,23 @@
                 "type": "null"
               }
             ],
-            "title": "Notification Preference"
+            "title": "Phone No"
+          },
+          "date_collected": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Collected"
           }
         },
         "type": "object",
-        "required": [
-          "ids",
-          "bank_ids",
-          "phone_numbers"
-        ],
-        "title": "Profile"
+        "title": "PhoneNumber"
       },
       "Program": {
         "properties": {
@@ -1903,6 +1918,40 @@
               }
             ],
             "title": "Last Application Status"
+          },
+          "is_reimbursement_program": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Reimbursement Program"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "create_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Date"
           }
         },
         "type": "object",
@@ -2136,6 +2185,132 @@
         },
         "type": "object",
         "title": "RegistrantID"
+      },
+      "UpdateProfile": {
+        "properties": {
+          "ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RegistrantID"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "bank_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BankDetails"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank Ids"
+          },
+          "addl_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addl Name"
+          },
+          "given_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Given Name"
+          },
+          "family_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Name"
+          },
+          "birthdate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birthdate"
+          },
+          "phone_numbers": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PhoneNumber"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone Numbers"
+          },
+          "birth_place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birth Place"
+          }
+        },
+        "type": "object",
+        "title": "UpdateProfile"
       },
       "ValidationError": {
         "properties": {

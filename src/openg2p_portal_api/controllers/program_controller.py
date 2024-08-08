@@ -1,6 +1,7 @@
 from typing import Annotated, List
 
 from fastapi import Depends
+from fastapi.responses import JSONResponse
 from openg2p_fastapi_common.controller import BaseController
 from openg2p_fastapi_common.errors.http_exceptions import UnauthorizedError
 
@@ -24,6 +25,7 @@ class ProgramController(BaseController):
         self.router.add_api_route(
             "/program",
             self.get_programs,
+            response_class=JSONResponse,
             responses={200: {"model": List[Program]}},
             methods=["GET"],
         )

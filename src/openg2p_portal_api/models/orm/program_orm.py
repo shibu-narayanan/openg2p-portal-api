@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
-from sqlalchemy import ForeignKey, String, and_, func, select
+from sqlalchemy import DateTime, ForeignKey, String, and_, desc, func, or_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
@@ -20,8 +21,11 @@ class ProgramORM(BaseORMModelWithId):
 
     name: Mapped[str] = mapped_column(String())
     description: Mapped[str] = mapped_column(String())
+    state: Mapped[str] = mapped_column(String())
     is_multiple_form_submission: Mapped[str] = mapped_column()
-
+    is_reimbursement_program: Mapped[bool] = mapped_column()
+    active: Mapped[bool] = mapped_column()
+    create_date: Mapped[datetime] = mapped_column(DateTime())
     membership: Mapped[Optional[List["ProgramMembershipORM"]]] = relationship(
         back_populates="program"
     )
@@ -38,7 +42,18 @@ class ProgramORM(BaseORMModelWithId):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
             stmt = (
-                select(cls).options(selectinload(cls.membership)).order_by(cls.id.asc())
+                select(cls)
+                .filter(
+                    cls.state != "inactive",
+                    cls.state != "ended",
+                    cls.active.is_(True),
+                    or_(
+                        cls.is_reimbursement_program.is_(False),
+                        cls.is_reimbursement_program.is_(None),
+                    ),
+                )
+                .options(selectinload(cls.membership))
+                .order_by(desc(cls.create_date))
             )
             result = await session.execute(stmt)
             response = list(result.scalars())
@@ -65,13 +80,33 @@ class ProgramORM(BaseORMModelWithId):
         response = []
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
+            # Create a case sensitive match condition
+            case_sensitive_match = cls.name.like(f"%{keyword}%") & cls.name.ilike(
+                f"%{keyword}%"
+            )
+            # Create a case insensitive match condition
+            case_insensitive_match = cls.name.ilike(f"%{keyword}%")
+
+            # First, select entries that match the keyword with the same case
             stmt = (
                 select(cls)
-                .filter(cls.name.like(f"%{keyword}%"))
+                .filter(case_sensitive_match)
                 .options(selectinload(cls.membership))
             )
             result = await session.execute(stmt)
-            response = list(result.scalars().all()) if result.scalars() else []
+            response.extend(list(result.scalars().all()))
+
+            # Next, select entries that match the keyword regardless of case, excluding already selected ones
+            stmt = (
+                select(cls)
+                .filter(case_insensitive_match)
+                .filter(~case_sensitive_match)
+                .options(selectinload(cls.membership))
+            )
+
+            result = await session.execute(stmt)
+            # response = list(result.scalars().all()) if result.scalars() else []
+            response.extend(list(result.scalars().all()))
         return response
 
     @classmethod
@@ -91,13 +126,34 @@ class ProgramORM(BaseORMModelWithId):
     async def get_program_summary(cls, partner_id: int) -> List["ProgramORM"]:
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
+            latest_application_subquery = (
+                select(
+                    ProgramRegistrantInfoORM.program_id,
+                    func.max(ProgramRegistrantInfoORM.create_date).label(
+                        "latest_application_date"
+                    ),
+                )
+                .join(
+                    ProgramMembershipORM,
+                    and_(
+                        ProgramMembershipORM.partner_id
+                        == ProgramRegistrantInfoORM.registrant_id,
+                        ProgramMembershipORM.program_id
+                        == ProgramRegistrantInfoORM.program_id,
+                    ),
+                )
+                .where(ProgramMembershipORM.partner_id == partner_id)
+                .group_by(ProgramRegistrantInfoORM.program_id)
+                .subquery()
+            )
             stmt = (
                 select(
                     ProgramORM.name.label("program_name"),
                     ProgramMembershipORM.state.label("enrollment_status"),
-                    func.coalesce(func.sum(EntitlementORM.initial_amount), 0).label(
-                        "total_funds_awaited"
-                    ),
+                    (
+                        func.coalesce(func.sum(EntitlementORM.initial_amount), 0)
+                        - func.coalesce(func.sum(PaymentORM.amount_paid), 0)
+                    ).label("total_funds_awaited"),
                     func.coalesce(func.sum(PaymentORM.amount_paid), 0).label(
                         "total_funds_received"
                     ),
@@ -130,8 +186,17 @@ class ProgramORM(BaseORMModelWithId):
                         PaymentORM.status == "paid",
                     ),
                 )
+                .outerjoin(
+                    latest_application_subquery,
+                    ProgramORM.id == latest_application_subquery.c.program_id,
+                )
                 .where(ProgramMembershipORM.partner_id == partner_id)
-                .group_by(ProgramORM.name, ProgramMembershipORM.state)
+                .group_by(
+                    ProgramORM.name,
+                    ProgramMembershipORM.state,
+                    latest_application_subquery.c.latest_application_date,
+                )
+                .order_by(desc(latest_application_subquery.c.latest_application_date))
             )
             result = await session.execute(stmt)
         return result.all()
@@ -158,6 +223,7 @@ class ProgramORM(BaseORMModelWithId):
                 )
                 .outerjoin(ProgramORM, ProgramMembershipORM.program_id == ProgramORM.id)
                 .where(ProgramMembershipORM.partner_id == partner_id)
+                .order_by(ProgramRegistrantInfoORM.create_date.desc())
             )
             # print("####################################")
             # print(stmt)
@@ -170,10 +236,11 @@ class ProgramORM(BaseORMModelWithId):
             stmt = (
                 select(
                     ProgramORM.name.label("program_name"),
-                    ProgramMembershipORM.state.label("enrollment_status"),
-                    func.coalesce(EntitlementORM.initial_amount, 0).label(
-                        "funds_awaited"
-                    ),
+                    EntitlementORM.date_approved.label("date_approved"),
+                    (
+                        func.coalesce(EntitlementORM.initial_amount, 0)
+                        - func.coalesce(PaymentORM.amount_paid, 0)
+                    ).label("funds_awaited"),
                     func.coalesce(PaymentORM.amount_paid, 0).label("funds_received"),
                     EntitlementORM.ern.label("entitlement_reference_number"),
                     # CycleORM.name.label("cycle_name")
@@ -206,7 +273,17 @@ class ProgramORM(BaseORMModelWithId):
                         PaymentORM.status == "paid",
                     ),
                 )
-                .where(ProgramMembershipORM.partner_id == partner_id)
+                .where(
+                    and_(
+                        ProgramMembershipORM.partner_id == partner_id,
+                        or_(
+                            EntitlementORM.ern.isnot(None),
+                            EntitlementORM.initial_amount != 0,
+                            PaymentORM.amount_paid != 0,
+                        ),
+                    )
+                )
+                .order_by(EntitlementORM.date_approved.desc())
             )
             result = await session.execute(stmt)
         return result.all()

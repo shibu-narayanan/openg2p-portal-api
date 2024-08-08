@@ -1,4 +1,5 @@
 # ruff: noqa: E402
+
 import asyncio
 
 from .config import Settings
@@ -23,10 +24,10 @@ class Initializer(Initializer):
     def initialize(self, **kwargs):
         super().initialize()
         # Initialize all Services, Controllers, any utils here.
+        PartnerService()
         MembershipService()
         ProgramService()
         FormService()
-        PartnerService()
 
         DiscoveryController().post_init()
         ProgramController().post_init()

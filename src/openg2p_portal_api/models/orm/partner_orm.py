@@ -3,7 +3,15 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModel, BaseORMModelWithId
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, select
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    String,
+    select,
+    text,
+)
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,16 +30,13 @@ class PartnerORM(BaseORMModelWithId):
     address: Mapped[str] = mapped_column()
     birthdate: Mapped[date] = mapped_column(Date())
     birth_place: Mapped[str] = mapped_column()
-    notification_preference: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column()
-
+    company_id: Mapped[Optional[int]] = mapped_column()
+    registration_date: Mapped[date] = mapped_column(Date(), default=date.today)
     reg_ids: Mapped[Optional[List[RegIDORM]]] = relationship(back_populates="partner")
 
     create_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
     write_date: Mapped[datetime] = mapped_column(DateTime(), default=datetime.utcnow)
-    display_name: Mapped[str] = mapped_column(
-        String(), default=lambda ctx: ctx.current_parameters["name"]
-    )
     type: Mapped[str] = mapped_column(String(), default="contact")
     is_registrant: Mapped[bool] = mapped_column(Boolean(), default=True)
     is_group: Mapped[bool] = mapped_column(Boolean(), default=False)
@@ -44,6 +49,18 @@ class PartnerORM(BaseORMModelWithId):
 
             result = await session.execute(stmt)
         return result.scalar()
+
+    @classmethod
+    async def get_partner_fields(cls):
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            result = await session.execute(
+                text(
+                    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = :tbl_name"
+                ),
+                params={"tbl_name": cls.__tablename__},
+            )
+        return result.scalars().all()
 
 
 class PartnerBankORM(BaseORMModelWithId):

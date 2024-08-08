@@ -22,8 +22,8 @@ ADD --chown=${container_user}:${container_user_group} main.py /app
 RUN python3 -m venv venv \
   && . ./venv/bin/activate
 RUN python3 -m pip install \
-  git+https://github.com/openg2p/openg2p-fastapi-common.git@develop\#egg=openg2p-fastapi-common\&subdirectory=openg2p-fastapi-common \
-  git+https://github.com/openg2p/openg2p-fastapi-common.git@develop\#egg=openg2p-fastapi-auth\&subdirectory=openg2p-fastapi-auth \
+  git+https://github.com/openg2p/openg2p-fastapi-common@develop\#subdirectory=openg2p-fastapi-common \
+  git+https://github.com/openg2p/openg2p-fastapi-common@develop\#subdirectory=openg2p-fastapi-auth \
   ./src
 
 CMD python3 main.py migrate; \

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from openg2p_fastapi_common.models import BaseORMModel
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,3 +13,4 @@ class EntitlementORM(BaseORMModel):
     state: Mapped[str] = mapped_column()
     initial_amount: Mapped[int] = mapped_column()
     ern: Mapped[int] = mapped_column()
+    date_approved: Mapped[datetime] = mapped_column()

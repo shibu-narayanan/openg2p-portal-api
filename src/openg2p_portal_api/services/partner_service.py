@@ -1,18 +1,22 @@
+import logging
 from datetime import datetime
 
 import orjson
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.errors.http_exceptions import InternalServerError
 from openg2p_fastapi_common.service import BaseService
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from ..config import Settings
+from ..context import partner_fields_cache
 from ..models.orm.auth_oauth_provider import AuthOauthProviderORM
 from ..models.orm.partner_orm import PartnerORM, PartnerPhoneNoORM
 from ..models.orm.reg_id_orm import RegIDORM
 
 _config = Settings.get_config(strict=False)
+_logger = logging.getLogger(_config.logging_default_logger_name)
 
 
 class PartnerService(BaseService):
@@ -45,6 +49,7 @@ class PartnerService(BaseService):
                 "is_registrant": True,
                 "is_group": False,
                 "active": True,
+                "company_id": 1,
             }
             partner_dict["name"] = self.create_partner_process_name(
                 partner_dict["family_name"],
@@ -73,7 +78,9 @@ class PartnerService(BaseService):
                 )
             )
 
-            async_session_maker = async_sessionmaker(dbengine.get())
+            async_session_maker = async_sessionmaker(
+                dbengine.get(), expire_on_commit=False
+            )
             async with async_session_maker() as session:
                 try:
                     partner = PartnerORM(**partner_dict)
@@ -91,34 +98,41 @@ class PartnerService(BaseService):
                     session.add(phone_number)
 
                     await session.commit()
+                    await self.create_partner_add_display_name(partner, session)
                 except IntegrityError as e:
                     raise InternalServerError(
                         message=f"Could not create partner. {repr(e)}",
                     ) from e
 
-    async def update_partner_data(self, id, data: dict):
-        async_session_maker = async_sessionmaker(dbengine.get())
-        async with async_session_maker() as session:
-            partner = await PartnerORM.get_partner_data(id)
-            if partner:
-                for field_name in partner.__dict__:
-                    if field_name in data:
-                        setattr(partner, field_name, data[field_name])
+    async def update_partner_info(self, partner_id, data, session=None):
+        # Update partner_info with fields from program_registrant_info
+        is_create_session = False
+        if not session:
+            session = async_sessionmaker(dbengine.get())()
+            is_create_session = True
+        updated_fields = {}
+        partner_fields = await self.get_partner_fields()
+        for key, value in data.items():
+            # if hasattr(partner_info, key) and getattr(partner_info, key) != value:
+            # TODO: handle deleted values
 
-                partner.name = (
-                    data["given_name"]
-                    + " "
-                    + data["family_name"]
-                    + " "
-                    + data["addl_name"]
+            if key in partner_fields and data.get(key, None):
+                updated_fields[key] = value
+            # TODO: handle the name change
+            # name=self.create_partner_process_name(data["family_name"],data["given_name"],data["addl_name"])
+        if updated_fields:
+            set_clause = ", ".join(
+                [f"{key} = '{value}'" for key, value in updated_fields.items()]
+            )
+            await session.execute(
+                text(
+                    f"UPDATE {PartnerORM.__tablename__} SET {set_clause} WHERE id='{partner_id}'"
                 )
-
-                try:
-                    session.add(partner)
-                    await session.commit()
-                except IntegrityError:
-                    return "Could not add to registrant to program!!"
-        return "Updated the partner info"
+            )
+            await session.commit()
+        if is_create_session:
+            await session.close()
+        return updated_fields
 
     def create_partner_process_gender(self, gender):
         return gender.capitalize()
@@ -156,3 +170,19 @@ class PartnerService(BaseService):
                 else:
                     res[key] = value
         return res
+
+    async def create_partner_add_display_name(self, partner, session):
+        try:
+            await self.update_partner_info(
+                partner.id, {"display_name": partner.name}, session=session
+            )
+        except IntegrityError:
+            _logger.warning("Failed to insert display name. Odoo version maybe 17.0")
+
+    async def get_partner_fields(self):
+        partner_field = partner_fields_cache.get()
+        if partner_field:
+            return partner_field
+        partner_field = await PartnerORM.get_partner_fields()
+        partner_fields_cache.set(partner_field)
+        return partner_field
