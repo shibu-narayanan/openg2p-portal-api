@@ -26,8 +26,7 @@ class AuthOauthProviderORM(BaseORMModel):
     flow: Mapped[Optional[str]] = mapped_column()
 
     body: Mapped[Optional[str]] = mapped_column()
-    g2p_portal_login_image_icon_url: Mapped[Optional[str]] = mapped_column()
-    g2p_portal_oauth_callback_url: Mapped[Optional[str]] = mapped_column()
+    image_icon_url: Mapped[Optional[str]] = mapped_column()
 
     client_id: Mapped[Optional[str]] = mapped_column()
     client_authentication_method: Mapped[str] = mapped_column()
@@ -38,19 +37,19 @@ class AuthOauthProviderORM(BaseORMModel):
     validation_endpoint: Mapped[Optional[str]] = mapped_column()
     token_endpoint: Mapped[Optional[str]] = mapped_column()
     jwks_uri: Mapped[Optional[str]] = mapped_column()
+    jwt_assertion_aud: Mapped[Optional[str]] = mapped_column()
 
     scope: Mapped[Optional[str]] = mapped_column()
     code_verifier: Mapped[Optional[str]] = mapped_column()
+    date_format: Mapped[Optional[str]] = mapped_column()
+    company_id: Mapped[Optional[int]] = mapped_column()
+    token_map: Mapped[str] = mapped_column()
 
     extra_authorize_params: Mapped[Optional[str]] = mapped_column()
 
     g2p_self_service_allowed: Mapped[Optional[bool]] = mapped_column()
-
-    g2p_oidc_id_to_use: Mapped[Optional[bool]] = mapped_column()
+    g2p_portal_oauth_callback_url: Mapped[Optional[str]] = mapped_column()
     g2p_id_type: Mapped[Optional[int]] = mapped_column()
-    partner_creation_call_validate_url: Mapped[Optional[bool]] = mapped_column()
-    partner_creation_validate_response_mapping: Mapped[Optional[str]] = mapped_column()
-    partner_creation_date_format: Mapped[Optional[str]] = mapped_column()
 
     @classmethod
     async def get_by_id(cls, id: int, active=True) -> "AuthOauthProviderORM":
@@ -109,22 +108,21 @@ class AuthOauthProviderORM(BaseORMModel):
             elif iss:
                 ap = await cls.get_auth_provider_from_iss(iss)
 
-            if ap and ap.g2p_oidc_id_to_use:
-                # Mandatory to tick this box "Use G2P Reg ID" for now.
+            if ap and ap.g2p_id_type:
                 id_type_config = {
                     "g2p_id_type": ap.g2p_id_type,
-                    "partner_creation_call_validate_url": ap.partner_creation_call_validate_url,
-                    "partner_creation_validate_response_mapping": ap.partner_creation_validate_response_mapping,
-                    "partner_creation_date_format": ap.partner_creation_date_format,
+                    "token_map": ap.token_map,
+                    "date_format": ap.date_format,
+                    "company_id": ap.company_id,
                 }
                 auth_id_type_config_cache.get()[iss_id] = id_type_config
         return id_type_config
 
     def map_auth_provider_to_login_provider(self) -> LoginProvider:
         response_type = "token"
-        if self.flow == "id_token":
+        if self.flow == "oidc_implicit":
             response_type = "id_token token"
-        elif self.flow == "id_token_code":
+        elif self.flow == "oidc_auth_code":
             response_type = "code"
         # Only the following type is supported for now
         type = LoginProviderTypes.oauth2_auth_code
@@ -136,7 +134,7 @@ class AuthOauthProviderORM(BaseORMModel):
             # Description not available
             description=self.name,
             login_button_text=self.body or "",
-            login_button_image_url=self.g2p_portal_login_image_icon_url or "",
+            login_button_image_url=self.image_icon_url or "",
             authorization_parameters=OauthProviderParameters(
                 authorize_endpoint=self.auth_endpoint,
                 token_endpoint=self.token_endpoint,
@@ -145,11 +143,14 @@ class AuthOauthProviderORM(BaseORMModel):
                 client_id=self.client_id,
                 client_secret=self.client_secret,
                 client_assertion_type=OauthClientAssertionType[
-                    self.client_authentication_method
+                    "client_secret"
+                    if self.client_authentication_method.startswith("client_secret")
+                    else self.client_authentication_method
                 ],
                 client_assertion_jwk=base64.b64decode(self.client_private_key)
                 if self.client_private_key
                 else None,
+                client_assertion_jwk_aud=self.jwt_assertion_aud,
                 response_type=response_type,
                 redirect_uri=self.g2p_portal_oauth_callback_url or "",
                 scope=self.scope,
@@ -162,9 +163,12 @@ class AuthOauthProviderORM(BaseORMModel):
         )
 
     @classmethod
-    def map_validation_response_partner_creation(cls, req: dict, mapping: str = None):
+    def map_validation_response(cls, req: dict, mapping: str = None):
         res = {}
+        mapping = mapping.strip() if mapping else ""
         if mapping:
+            if mapping.endswith("*:*"):
+                res = req
             for pair in mapping.split(" "):
                 from_key, to_key = (k.strip() for k in pair.split(":", 1))
                 res[to_key] = req.get(from_key, "")

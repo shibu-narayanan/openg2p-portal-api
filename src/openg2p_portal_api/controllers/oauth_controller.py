@@ -4,7 +4,6 @@ from openg2p_fastapi_auth.controllers.oauth_controller import OAuthController
 from openg2p_fastapi_common.utils import cookie_utils
 
 from ..config import Settings
-from ..dependencies import JwtBearerAuth
 from ..models.orm.auth_oauth_provider import AuthOauthProviderORM
 from ..services.partner_service import PartnerService
 
@@ -41,25 +40,17 @@ class OAuthController(OAuthController):
 
         res = await super().oauth_callback(request)
 
+        userinfo_dict = await self.auth_controller.get_oauth_validation_data(
+            auth=cookie_utils.get_response_cookies(res, "X-Access-Token")[-1],
+            id_token=cookie_utils.get_response_cookies(res, "X-ID-Token")[-1],
+            provider=await self.auth_controller.get_login_provider_db_by_id(
+                auth_provider_id
+            ),
+        )
+
         id_type_config = await AuthOauthProviderORM.get_auth_id_type_config(
             id=auth_provider_id
         )
-
-        if id_type_config and id_type_config.get(
-            "partner_creation_call_validate_url", False
-        ):
-            userinfo_dict = await self.auth_controller.get_oauth_validation_data(
-                auth=cookie_utils.get_response_cookies(res, "X-Access-Token")[-1],
-                id_token=cookie_utils.get_response_cookies(res, "X-ID-Token")[-1],
-                provider=await self.auth_controller.get_login_provider_db_by_id(
-                    auth_provider_id
-                ),
-            )
-        else:
-            userinfo_dict = JwtBearerAuth.combine_tokens(
-                cookie_utils.get_response_cookies(res, "X-Access-Token")[-1],
-                cookie_utils.get_response_cookies(res, "X-ID-Token")[-1],
-            )
         await self.partner_service.check_and_create_partner(
             userinfo_dict, id_type_config=id_type_config
         )
