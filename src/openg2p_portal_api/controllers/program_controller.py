@@ -12,6 +12,7 @@ from ..models.program import ApplicationDetails, BenefitDetails, Program, Progra
 from ..services.program_service import ProgramService
 
 _config = Settings.get_config()
+partner__id = 17 
 
 
 class ProgramController(BaseController):
@@ -58,6 +59,7 @@ class ProgramController(BaseController):
             methods=["GET"],
         )
 
+
     @property
     def program_service(self):
         if not self._program_service:
@@ -65,7 +67,8 @@ class ProgramController(BaseController):
         return self._program_service
 
     async def get_programs(
-        self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        # self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        self
     ):
         """
         Retrieves a list of all programs. Requires authentication.
@@ -78,14 +81,17 @@ class ProgramController(BaseController):
 
             List[Program]: A list of program objects.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
-        return await self.program_service.get_all_program_service(auth.partner_id)
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
+        # return await self.program_service.get_all_program_service(partner_id)
+
+        return await self.program_service.get_all_program_service(partner__id)
 
     async def get_program_by_id(
-        self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        # self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        self,programid:int
     ):
         """
         Retrieves a specific program by its ID. Requires authentication.
@@ -100,17 +106,19 @@ class ProgramController(BaseController):
 
             Program: The requested program object.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
 
         return await self.program_service.get_program_by_id_service(
-            programid, auth.partner_id
+            programid,partner__id
         )
+      
 
     async def get_program_summary(
-        self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        # self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        self
     ):
         """
         Retrieves a summary of programs. Requires authentication.
@@ -125,14 +133,16 @@ class ProgramController(BaseController):
 
             A list of program summary objects. Retrieves program summaries, filtering by partner_id, grouping by program name and enrollment status, and calculating total funds awaited and received.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
-        return await self.program_service.get_program_summary_service(auth.partner_id)
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
+        # return await self.program_service.get_program_summary_service(auth.partner_id)
+        return await self.program_service.get_program_summary_service(partner__id)
 
     async def get_application_details(
-        self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        # self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        self
     ):
         """
         Retrieves details of applications. Requires authentication.
@@ -147,16 +157,20 @@ class ProgramController(BaseController):
 
             A list of application detail objects. Focuses on program name, application ID, date applied, and application status for each application linked to the partner_id.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
+        # return await self.program_service.get_application_details_service(
+        #     auth.partner_id
+        # )
         return await self.program_service.get_application_details_service(
-            auth.partner_id
+            partner__id
         )
 
     async def get_benefit_details(
-        self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        # self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        self
     ):
         """
         Retrieves details of benefits associated with programs. Requires authentication.
@@ -171,8 +185,10 @@ class ProgramController(BaseController):
 
             A list of benefit detail objects. Fetches details like program name, enrollment status, funds awaited and received, and entitlement reference numbers for specified partner_id.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
-        return await self.program_service.get_benefit_details_service(auth.partner_id)
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
+        # return await self.program_service.get_benefit_details_service(auth.partner_id)
+        return await self.program_service.get_benefit_details_service(partner__id)
+

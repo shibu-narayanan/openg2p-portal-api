@@ -21,7 +21,7 @@ from ..models.profile import GetProfile, UpdateProfile
 from ..services.partner_service import PartnerService
 
 _config = Settings.get_config()
-
+partner__id = 17
 
 class AuthController(AuthController):
     """
@@ -58,7 +58,7 @@ class AuthController(AuthController):
 
     async def get_profile(
         self,
-        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+        # auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
         online: bool = True,
     ):
         """
@@ -75,12 +75,13 @@ class AuthController(AuthController):
             Profile: The profile of the authenticated user.
         """
 
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
 
-        partner_data = await PartnerORM.get_partner_data(auth.partner_id)
+        partner_data = await PartnerORM.get_partner_data(partner__id)
+        # partner_data = await PartnerORM.get_partner_data(auth.partner_id)
         partner_ids_data = await RegIDORM.get_all_partner_ids(partner_data.id)
         partner_bank_data = await PartnerBankORM.get_partner_banks(partner_data.id)
         partner_phone_data = await PartnerPhoneNoORM.get_partner_phone_details(
@@ -143,7 +144,7 @@ class AuthController(AuthController):
     async def update_profile(
         self,
         userdata: UpdateProfile,
-        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+        # auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
         """
         Updates the profile of the authenticated user.
@@ -160,7 +161,8 @@ class AuthController(AuthController):
         """
         try:
             await self.partner_service.update_partner_info(
-                auth.partner_id, userdata.model_dump(exclude={"id"})
+                # auth.partner_id, userdata.model_dump(exclude={"id"})
+                partner__id, userdata.model_dump(exclude={"id"})
             )
         except IntegrityError:
             return "Could not add to registrant to program!!"

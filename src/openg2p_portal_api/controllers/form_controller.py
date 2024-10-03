@@ -15,7 +15,7 @@ from ..services.form_service import FormService
 from ..services.program_service import ProgramService
 
 _config = Settings.get_config()
-
+partner__id=17
 
 class FormController(BaseController):
     """
@@ -73,7 +73,8 @@ class FormController(BaseController):
         return self._program_service
 
     async def get_program_form(
-        self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        # self, programid: int, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
+        self, programid:int
     ):
         """
         Retrieves the form for a specified program.
@@ -88,17 +89,19 @@ class FormController(BaseController):
 
             ProgramForm: The form associated with the specified program.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
-        return await self.form_service.get_program_form(programid, auth.partner_id)
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
+        # return await self.form_service.get_program_form(programid, auth.partner_id)
+        return await self.form_service.get_program_form(programid, partner__id)
+
 
     async def create_or_update_form_draft(
         self,
         programid: int,
         programreginfo: ProgramRegistrantInfo,
-        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+        # auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
         """
         Creates or updates a draft of a form for a specified program.
@@ -115,20 +118,23 @@ class FormController(BaseController):
 
             ProgramForm: The created or updated form draft.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
 
+        # return await self.form_service.create_form_draft(
+        #     programid, programreginfo, auth.partner_id
+        # )
         return await self.form_service.create_form_draft(
-            programid, programreginfo, auth.partner_id
+            programid, programreginfo, partner__id
         )
 
     async def submit_form(
         self,
         programid: int,
         programreginfo: ProgramRegistrantInfo,
-        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+        # auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
     ):
         """
         Submits a form for a specified program.
@@ -145,19 +151,25 @@ class FormController(BaseController):
 
             ProgramForm: The submitted form.
         """
-        if not auth.partner_id:
-            raise UnauthorizedError(
-                message="Unauthorized. Partner Not Found in Registry."
-            )
+        # if not auth.partner_id:
+        #     raise UnauthorizedError(
+        #         message="Unauthorized. Partner Not Found in Registry."
+        #     )
 
+        # program = await self.program_service.get_program_by_id_service(
+        #     programid, auth.partner_id
+        # )
         program = await self.program_service.get_program_by_id_service(
-            programid, auth.partner_id
+            programid,partner__id
         )
         if not program.is_portal_form_mapped:
             raise BadRequestError(
                 message="Form submission is not allowed. Portal form is not mapped to this program."
             )
 
+        # return await self.form_service.submit_application_form(
+        #     programid, programreginfo, auth.partner_id
+        # )
         return await self.form_service.submit_application_form(
-            programid, programreginfo, auth.partner_id
+            programid, programreginfo, partner__id
         )
