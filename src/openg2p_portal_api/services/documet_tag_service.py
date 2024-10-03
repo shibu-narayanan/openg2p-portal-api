@@ -14,8 +14,6 @@ class DocumentTagService(BaseService):
 
         self.async_session_maker = async_sessionmaker(dbengine.get())
 
-
-  
     async def create_tag(self, tag_name: str):
         async with self.async_session_maker() as session:
                 new_tag = DocumentTagORM(name=tag_name)
@@ -27,9 +25,7 @@ class DocumentTagService(BaseService):
                     return DocumentTag.from_orm(new_tag)  
                 except SQLAlchemyError as e:
                     await session.rollback()  
-                    raise Exception("Error creating tag: " + str(e))
-
-                
+                    raise Exception("Error creating tag: " + str(e))           
                 
     async def get_all_tags(self):
         async with self.async_session_maker() as session:
@@ -39,11 +35,3 @@ class DocumentTagService(BaseService):
                     return [DocumentTag.from_orm(tag) for tag in tags] 
                 except Exception as e:
                     raise Exception("Error retrieving tags: " + str(e))
-
-
-    # async def get_tags_by_name(self, tag_name: str):
-    #     async with self.async_session_maker() as session:
-    #         result = await session.execute(
-    #             select(DocumentTagORM).where(DocumentTagORM.name == tag_name)  
-    #         )
-    #         return result.scalars().all()

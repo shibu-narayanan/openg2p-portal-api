@@ -33,19 +33,6 @@ class DocumentFileService(BaseService):
         self.s3_client = None
         self.bucket_name = None
 
-
-
-    class DocumentFileService(BaseService):
-
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-
-            self.async_session_maker = async_sessionmaker(dbengine.get())
-
-            #further use for minio configuration
-            self.s3_client = None
-            self.bucket_name = None
-
     async def upload_document_minio(self,file_obj,file_name: str,backend_id:int):
 
        
