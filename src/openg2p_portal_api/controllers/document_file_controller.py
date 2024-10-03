@@ -64,6 +64,7 @@ class DocumentFileController(BaseController):
                 file.file,
                 file_name = name,
                 backend_id = storage_id,
+                file_id=file_id,
             )
 
             return {"message": "File uploaded successfully on MinIO and Odoo", "file_name": name}

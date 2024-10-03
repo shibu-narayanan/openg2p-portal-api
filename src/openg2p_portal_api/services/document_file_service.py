@@ -2,15 +2,15 @@ import hashlib
 import json
 import mimetypes
 import os
-import uuid
 import boto3
+import re
 from fastapi import HTTPException
 from openg2p_fastapi_common.service import BaseService
 from openg2p_portal_api.models.document_file import DocumentFile  
 from openg2p_portal_api.models.orm.document_store_orm import DocumentStoreORM
 from openg2p_portal_api.models.orm.document_tag_orm import DocumentTagORM
 from slugify import slugify
-from sqlalchemy import select, text
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from ..models.orm.document_file_orm import DocumentFileORM
 from openg2p_fastapi_common.context import dbengine
@@ -29,17 +29,33 @@ class DocumentFileService(BaseService):
         super().__init__(**kwargs)
         self.async_session_maker = async_sessionmaker(dbengine.get())
 
-        #further user for minio configuration
-        self.s3_client = None
-        self.bucket_name = None
+    async def get_document_by_id(self, document_id: int):
+        async with self.async_session_maker() as session:
+            try:
+                result = await session.execute(
+                    select(DocumentFileORM).where(DocumentFileORM.id == document_id)
+                )
+                document = result.scalar_one_or_none()
 
-    async def upload_document_minio(self,file_obj,file_name: str,backend_id:int):
+                if not document:
+                    raise Exception("Document not found")
 
-       
+                return DocumentFile.from_orm(document)  
+            except SQLAlchemyError as e:
+                raise Exception("Error retrieving document: " + str(e))
+
+
+    async def upload_document_minio(self,file_obj,file_name: str,backend_id:int,file_id:int):
+
         if file_obj is None  :
             raise ValueError("The file object is empty or not readable.")   
         file_obj.seek(0)
-        
+
+        # Convert a file name to a URL-friendly slug
+        original_filename = file_name
+        slugified_filename = slugify(original_filename)
+        final_filename = f"{slugified_filename}-{file_id}"
+            
 
         # Pull the config for MinIO 
         async with self.async_session_maker() as session:
@@ -78,31 +94,13 @@ class DocumentFileService(BaseService):
         
         # Upload the file to MinIO
         try:
-            self.s3_client.upload_fileobj(file_obj, self.bucket_name, file_name)
-            _logger.info(f"Successfully uploaded file {file_name} to MinIO")
-            return {"message": "File successfully uploaded to MinIO"}
+            self.s3_client.upload_fileobj(file_obj, self.bucket_name, final_filename)
         except ClientError as e:
             _logger.error(f"Error uploading file {file_name}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
         except Exception as e:
             _logger.error(f"Unexpected error while uploading file {file_name}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
-
-
-    async def get_document_by_id(self, document_id: int):
-        async with self.async_session_maker() as session:
-            try:
-                result = await session.execute(
-                    select(DocumentFileORM).where(DocumentFileORM.id == document_id)
-                )
-                document = result.scalar_one_or_none()
-
-                if not document:
-                    raise Exception("Document not found")
-
-                return DocumentFile.from_orm(document)  
-            except SQLAlchemyError as e:
-                raise Exception("Error retrieving document: " + str(e))
 
 
 
@@ -132,7 +130,11 @@ class DocumentFileService(BaseService):
             )
             self.extract_filename(new_file)
             self.compute_human_file_size(new_file)
-            new_file.slug = self.compute_slug(new_file)
+
+            # Convert a file name to a URL-friendly slug
+            slugified_filename = slugify(name)
+            new_file.slug = f"{slugified_filename}-{id}"
+
             new_file.relative_path = await self.build_relative_path(new_file, checksum)
             new_file.write_uid = await self.get_tag_id_by_name(file_tag)
 
@@ -141,9 +143,16 @@ class DocumentFileService(BaseService):
             await session.refresh(new_file) 
             
             return DocumentFile.from_orm(new_file) 
-        
-  
 
+
+    def slugify(value: str) -> str:
+        value = value.lower()
+        value = re.sub(r'\s+', '-', value)  
+        value = re.sub(r'[^a-z0-9-]', '', value) 
+        value = value.strip('-') 
+        return value
+    
+    
     # not working properly
     async def get_tag_id_by_name(self, tag_name: str) -> int:
         async with self.async_session_maker() as session:  
@@ -193,14 +202,6 @@ class DocumentFileService(BaseService):
         if document_file.file_size is not None:
             document_file.human_file_size = self.human_size(document_file.file_size)
 
-
-
-    def compute_slug(self, document_file: DocumentFileORM) -> str:
-        """Generate slug based on filename and ID."""
-        if document_file.filename:
-            return self.slugify_name_with_id(document_file)
-
-
     def human_size(self, size: int) -> str:
         """Convert bytes to human-readable format."""
         for unit in ['B', 'KB', 'MB', 'GB']:
@@ -215,8 +216,3 @@ class DocumentFileService(BaseService):
         if document_file.name:
             document_file.filename, document_file.extension = os.path.splitext(document_file.name)
             document_file.mimetype = mimetypes.guess_type(document_file.name)[0] or ""
-
-    def slugify_name_with_id(self, document_file: DocumentFileORM) -> str:
-        """Create slugified name for URL."""
-        document_id = document_file.id if document_file.id is not None else str(uuid.uuid4())
-        return f"{slugify(f'{document_file.filename}-{document_id}')}{document_file.extension}"
