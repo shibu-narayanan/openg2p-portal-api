@@ -40,6 +40,7 @@ class AuthOauthProviderORM(BaseORMModel):
     jwt_assertion_aud: Mapped[Optional[str]] = mapped_column()
 
     scope: Mapped[Optional[str]] = mapped_column()
+    enable_pkce: Mapped[Optional[str]] = mapped_column()
     code_verifier: Mapped[Optional[str]] = mapped_column()
     date_format: Mapped[Optional[str]] = mapped_column()
     company_id: Mapped[Optional[int]] = mapped_column()
@@ -154,6 +155,7 @@ class AuthOauthProviderORM(BaseORMModel):
                 response_type=response_type,
                 redirect_uri=self.g2p_portal_oauth_callback_url or "",
                 scope=self.scope,
+                enable_pkce=self.enable_pkce,
                 code_verifier=self.code_verifier,
                 extra_authorize_parameters=orjson.loads(
                     self.extra_authorize_params or "{}"
