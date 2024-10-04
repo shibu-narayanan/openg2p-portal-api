@@ -2,6 +2,9 @@ import hashlib
 import json
 import mimetypes
 import os
+import random
+import string
+import uuid
 import boto3
 import re
 from fastapi import HTTPException
@@ -28,6 +31,7 @@ class DocumentFileService(BaseService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.async_session_maker = async_sessionmaker(dbengine.get())
+        self.unique_id = self.generate_unique_id()
 
     async def get_document_by_id(self, document_id: int):
         async with self.async_session_maker() as session:
@@ -45,7 +49,56 @@ class DocumentFileService(BaseService):
                 raise Exception("Error retrieving document: " + str(e))
 
 
-    async def upload_document_minio(self,file_obj,file_name: str,backend_id:int,file_id:int):
+    async def upload_document(self, name: str, backend_id: int, data: bytes,company_id:int,file_tag:str):
+        async with self.async_session_maker() as session:
+            
+            if data is None:
+                raise HTTPException(status_code=400, detail="Content must not be None.")
+            
+            filename=name 
+            extension = os.path.splitext(name)
+            mimetype = mimetypes.guess_type(name)[0] or ""
+
+            checksum = hashlib.sha1(data).hexdigest()
+            
+            new_file = DocumentFileORM(
+            # id=id,
+            name=name,
+            backend_id=backend_id,
+            file_size=len(data),
+            checksum=checksum,
+            filename=filename,
+            extension=extension,
+            mimetype=mimetype,
+            company_id=company_id,
+            active=True
+            )
+            self.extract_filename(new_file)
+            self.compute_human_file_size(new_file)
+
+            # Convert a file name to a URL-friendly slug                                        #working
+            slugified_filename = slugify(name)
+            unique_id = self.unique_id
+            new_file.slug = f"{slugified_filename}-{unique_id}"
+
+
+            #not working with filename with id                                                    #not working
+
+            # file_id = await get_file_id_by_name(name)
+            # final_filename = f"{slugified_filename}-{file_id}"
+        
+            
+            new_file.relative_path = await self.build_relative_path(new_file, checksum)
+            new_file.write_uid = await self.get_tag_id_by_name(file_tag)
+
+            session.add(new_file)
+            await session.commit() 
+            await session.refresh(new_file) 
+            
+            return DocumentFile.from_orm(new_file) 
+    
+
+    async def upload_document_minio(self,file_obj,file_name: str,backend_id:int):
 
         if file_obj is None  :
             raise ValueError("The file object is empty or not readable.")   
@@ -54,8 +107,15 @@ class DocumentFileService(BaseService):
         # Convert a file name to a URL-friendly slug
         original_filename = file_name
         slugified_filename = slugify(original_filename)
-        final_filename = f"{slugified_filename}-{file_id}"
-            
+
+        #working filename with unique_id                                             #working
+        unique_id = self.unique_id
+        final_filename = f"{slugified_filename}-{unique_id}"
+
+        #not working with filename with id                                           # not working
+        # file_id = await get_file_id_by_name(original_filename)
+        # final_filename = f"{slugified_filename}-{file_id}"
+    
 
         # Pull the config for MinIO 
         async with self.async_session_maker() as session:
@@ -104,46 +164,22 @@ class DocumentFileService(BaseService):
 
 
 
-    async def upload_document(self,id:int, name: str, backend_id: int, data: bytes,company_id:int,file_tag:str):
-        async with self.async_session_maker() as session:
-            
-            if data is None:
-                raise HTTPException(status_code=400, detail="Content must not be None.")
-            
-            filename=name 
-            extension = os.path.splitext(name)
-            mimetype = mimetypes.guess_type(name)[0] or ""
+    # async def get_file_id_by_name(self, name):
+    #     async with self.async_session_maker() as session:
+    #         result = await session.execute(
+    #             select(DocumentFileORM).where(DocumentFileORM.name == name)
+    #         )
+    #         document_file = result.scalars().first()  # Fixed assignment
 
-            checksum = hashlib.sha1(data).hexdigest()
-            
-            new_file = DocumentFileORM(
-            id=id,
-            name=name,
-            backend_id=backend_id,
-            file_size=len(data),
-            checksum=checksum,
-            filename=filename,
-            extension=extension,
-            mimetype=mimetype,
-            company_id=company_id,
-            active=True
-            )
-            self.extract_filename(new_file)
-            self.compute_human_file_size(new_file)
+    #         if document_file:
+    #             return document_file.id  
+    #         else:
+    #             return None
 
-            # Convert a file name to a URL-friendly slug
-            slugified_filename = slugify(name)
-            new_file.slug = f"{slugified_filename}-{id}"
-
-            new_file.relative_path = await self.build_relative_path(new_file, checksum)
-            new_file.write_uid = await self.get_tag_id_by_name(file_tag)
-
-            session.add(new_file)
-            await session.commit() 
-            await session.refresh(new_file) 
-            
-            return DocumentFile.from_orm(new_file) 
-
+    def generate_unique_id(self,length=8) -> str:
+        characters = string.ascii_letters + string.digits  
+        unique_id = ''.join(random.choices(characters, k=length))
+        return unique_id
 
     def slugify(value: str) -> str:
         value = value.lower()

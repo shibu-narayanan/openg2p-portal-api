@@ -40,8 +40,8 @@ class DocumentFileController(BaseController):
 
     async def upload_document(
         self,
-        file_id: int,
-        name: str,
+        # file_id: int,
+        # name: str,
         file_tag: str,
         storage_id: int,
         file: UploadFile = File(...),
@@ -51,8 +51,9 @@ class DocumentFileController(BaseController):
             # File upload on Odoo
             file_content = await file.read()
             await self.file_service.upload_document(
-                id=file_id,
-                name=name,
+                # id=file_id,
+                # name=name,
+                name = file.filename,
                 backend_id=storage_id,
                 data=file_content,
                 company_id=company_id,
@@ -62,12 +63,12 @@ class DocumentFileController(BaseController):
             # File upload on MinIO
             await self.file_service.upload_document_minio(
                 file.file,
-                file_name = name,
+                file_name = file.filename,
                 backend_id = storage_id,
-                file_id=file_id,
+                # file_id=file_id,
             )
 
-            return {"message": "File uploaded successfully on MinIO and Odoo", "file_name": name}
+            return {"message": "File uploaded successfully on MinIO and Odoo", "file_name": file.filename}
         
         except Exception as e:
             _logger.error("Error uploading document: %s", str(e))
