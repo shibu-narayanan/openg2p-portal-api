@@ -31,7 +31,6 @@ class DocumentFileService(BaseService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.async_session_maker = async_sessionmaker(dbengine.get())
-        self.unique_id = self.generate_unique_id()
 
     async def get_document_by_id(self, document_id: int):
         async with self.async_session_maker() as session:
@@ -62,7 +61,6 @@ class DocumentFileService(BaseService):
             checksum = hashlib.sha1(data).hexdigest()
             
             new_file = DocumentFileORM(
-            # id=id,
             name=name,
             backend_id=backend_id,
             file_size=len(data),
@@ -76,18 +74,6 @@ class DocumentFileService(BaseService):
             self.extract_filename(new_file)
             self.compute_human_file_size(new_file)
 
-            # Convert a file name to a URL-friendly slug                                        #working
-            slugified_filename = slugify(name)
-            unique_id = self.unique_id
-            new_file.slug = f"{slugified_filename}-{unique_id}"
-
-
-            #not working with filename with id                                                    #not working
-
-            # file_id = await get_file_id_by_name(name)
-            # final_filename = f"{slugified_filename}-{file_id}"
-        
-            
             new_file.relative_path = await self.build_relative_path(new_file, checksum)
             new_file.write_uid = await self.get_tag_id_by_name(file_tag)
 
@@ -107,15 +93,10 @@ class DocumentFileService(BaseService):
         # Convert a file name to a URL-friendly slug
         original_filename = file_name
         slugified_filename = slugify(original_filename)
-
-        #working filename with unique_id                                             #working
-        unique_id = self.unique_id
-        final_filename = f"{slugified_filename}-{unique_id}"
-
-        #not working with filename with id                                           # not working
-        # file_id = await get_file_id_by_name(original_filename)
-        # final_filename = f"{slugified_filename}-{file_id}"
-    
+        
+        #This is for update the slug and relative path
+        file_id = await self.get_file_id_by_slug()
+        final_filename = f"{slugified_filename}-{file_id}"
 
         # Pull the config for MinIO 
         async with self.async_session_maker() as session:
@@ -150,11 +131,11 @@ class DocumentFileService(BaseService):
                 region_name=region_name  
             )
             self.bucket_name = bucket_name
-
         
-        # Upload the file to MinIO
+        # Upload the file to MinIO & updating the slug and relative path
         try:
             self.s3_client.upload_fileobj(file_obj, self.bucket_name, final_filename)
+            await self.update_slug_relative_path(file_id,final_filename)  
         except ClientError as e:
             _logger.error(f"Error uploading file {file_name}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
@@ -164,23 +145,32 @@ class DocumentFileService(BaseService):
 
 
 
-    # async def get_file_id_by_name(self, name):
-    #     async with self.async_session_maker() as session:
-    #         result = await session.execute(
-    #             select(DocumentFileORM).where(DocumentFileORM.name == name)
-    #         )
-    #         document_file = result.scalars().first()  # Fixed assignment
+    async def get_file_id_by_slug(self):
+        async with self.async_session_maker() as session:
+            result = await session.execute(
+                select(DocumentFileORM).where(DocumentFileORM.slug == None)
+            )
+            document_file = result.scalars().first() 
+            if document_file:
+                return document_file.id  
+            else:
+                return None
 
-    #         if document_file:
-    #             return document_file.id  
-    #         else:
-    #             return None
 
-    def generate_unique_id(self,length=8) -> str:
-        characters = string.ascii_letters + string.digits  
-        unique_id = ''.join(random.choices(characters, k=length))
-        return unique_id
-
+    async def update_slug_relative_path(self, file_id: int, slug: str):
+        async with self.async_session_maker() as session:
+            async with session.begin():
+                result = await session.execute(
+                    select(DocumentFileORM).where(DocumentFileORM.id == file_id)
+                )
+                document_file = result.scalars().first()
+                if document_file:
+                    document_file.slug = slug
+                    document_file.relative_path = slug
+                    await session.commit()
+                else:
+                    raise ValueError(f"Document file with ID {file_id} not found.")
+                
     def slugify(value: str) -> str:
         value = value.lower()
         value = re.sub(r'\s+', '-', value)  
