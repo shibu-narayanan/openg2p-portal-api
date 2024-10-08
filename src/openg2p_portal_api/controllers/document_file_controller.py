@@ -40,10 +40,10 @@ class DocumentFileController(BaseController):
 
     async def upload_document(
         self,
-        file_tag: str,
-        storage_id: int,
+        file_tag: str="pdf file",
+        storage_id: int=1,
         file: UploadFile = File(...),
-        company_id: int = None,
+        company_id: int = 1,
     ):
         try:
             # File upload on Odoo

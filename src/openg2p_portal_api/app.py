@@ -13,7 +13,6 @@ from .controllers.discovery_controller import DiscoveryController
 from .controllers.form_controller import FormController
 from .controllers.oauth_controller import OAuthController
 from .controllers.program_controller import ProgramController
-from .controllers.s3_storage_controller import S3Controller
 from .controllers.documet_store_controller import DocumentStoreController
 from .controllers.document_tag_controller import DocumentTagController
 from .controllers.document_file_controller import DocumentFileController
@@ -51,7 +50,6 @@ class Initializer(Initializer):
         DiscoveryController().post_init()
         ProgramController().post_init()
         FormController().post_init()
-        S3Controller().post_init() 
         DocumentStoreController().post_init()
         DocumentTagController().post_init()
         DocumentFileController().post_init()

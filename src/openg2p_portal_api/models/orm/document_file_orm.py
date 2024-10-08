@@ -11,14 +11,14 @@ class DocumentFileORM(BaseORMModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     backend_id: Mapped[int] = mapped_column(ForeignKey("storage_backend.id"), nullable=False, index=True)
-    slug: Mapped[str] = mapped_column(String, nullable=True, index=True)  # Computed
-    relative_path: Mapped[str] = mapped_column(String, nullable=True)  # Read-only
+    slug: Mapped[str] = mapped_column(String, nullable=True, index=True)
+    relative_path: Mapped[str] = mapped_column(String, nullable=True)
     file_size: Mapped[int] = mapped_column(Integer, nullable=True)
-    human_file_size: Mapped[str] = mapped_column(String, nullable=True)  # Computed
-    checksum: Mapped[str] = mapped_column(String(40), nullable=True, index=True)  # Read-only
-    filename: Mapped[str] = mapped_column(String, nullable=True)  # Computed
-    extension: Mapped[str] = mapped_column(String, nullable=True)  # Computed
-    mimetype: Mapped[str] = mapped_column(String, nullable=True)  # Computed
+    human_file_size: Mapped[str] = mapped_column(String, nullable=True)
+    checksum: Mapped[str] = mapped_column(String(40), nullable=True, index=True)
+    filename: Mapped[str] = mapped_column(String, nullable=True) 
+    extension: Mapped[str] = mapped_column(String, nullable=True)
+    mimetype: Mapped[str] = mapped_column(String, nullable=True) 
     to_delete: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     file_type: Mapped[str] = mapped_column(String, nullable=True)

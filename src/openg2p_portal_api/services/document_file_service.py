@@ -2,9 +2,6 @@ import hashlib
 import json
 import mimetypes
 import os
-import random
-import string
-import uuid
 import boto3
 import re
 from fastapi import HTTPException
@@ -93,8 +90,6 @@ class DocumentFileService(BaseService):
         # Convert a file name to a URL-friendly slug
         original_filename = file_name
         slugified_filename = slugify(original_filename)
-        
-        #This is for update the slug and relative path
         file_id = await self.get_file_id_by_slug()
         final_filename = f"{slugified_filename}-{file_id}"
 
@@ -114,8 +109,7 @@ class DocumentFileService(BaseService):
                     backend.server_env_defaults = json.loads(backend.server_env_defaults)
                 except json.JSONDecodeError:
                     raise ValueError("Invalid JSON format in server_env_defaults.")
-
-            # Extract MinIO configuration
+                
             endpoint_url = backend.server_env_defaults.get("x_aws_host_env_default")
             aws_access_key = backend.server_env_defaults.get("x_aws_access_key_id_env_default")
             aws_secret_key = backend.server_env_defaults.get("x_aws_secret_access_key_env_default")
@@ -178,8 +172,6 @@ class DocumentFileService(BaseService):
         value = value.strip('-') 
         return value
     
-    
-    # not working properly
     async def get_tag_id_by_name(self, tag_name: str) -> int:
         async with self.async_session_maker() as session:  
             try:
