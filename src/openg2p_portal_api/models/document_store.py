@@ -1,13 +1,11 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Dict, Any
 
 class DocumentStore(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     is_public:bool
     name: str
     server_env_defaults: Dict[str, Any]
-
-    class Config:
-        from_attributes = True
 
    
     @field_validator('server_env_defaults', mode='before')

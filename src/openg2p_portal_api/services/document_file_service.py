@@ -142,9 +142,12 @@ class DocumentFileService(BaseService):
     async def get_file_id_by_slug(self):
         async with self.async_session_maker() as session:
             result = await session.execute(
-                select(DocumentFileORM).where(DocumentFileORM.slug == None)
+                select(DocumentFileORM)
+                .where(DocumentFileORM.slug == None)
+                .order_by(DocumentFileORM.id.desc())  
+                .limit(1)
             )
-            document_file = result.scalars().first() 
+            document_file = result.scalars().first()
             if document_file:
                 return document_file.id  
             else:
