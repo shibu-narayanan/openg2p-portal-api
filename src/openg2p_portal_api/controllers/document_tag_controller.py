@@ -2,10 +2,11 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 from openg2p_fastapi_common.controller import BaseController
 from openg2p_portal_api.models.documet_tag import DocumentTag
-from ..config import Settings
 from ..services.documet_tag_service import DocumentTagService
 
+from ..config import Settings
 _config = Settings.get_config()
+
 
 class DocumentTagController(BaseController):
     def __init__(self, **kwargs):

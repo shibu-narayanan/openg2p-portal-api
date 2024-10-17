@@ -25,12 +25,12 @@ class Settings(AuthSettings, Settings):
     openapi_version: str = __version__
     db_dbname: Optional[str] = "openg2pdb"
 
-    # auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_get_program_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_create_or_update_form_draft: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_submit_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_update_profile: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_get_program_summary: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_get_application_details: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    # auth_api_get_benefit_details: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_program_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_create_or_update_form_draft: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_submit_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_update_profile: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_program_summary: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_application_details: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_benefit_details: ApiAuthSettings = ApiAuthSettings(enabled=True)

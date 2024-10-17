@@ -18,7 +18,7 @@ class DocumentFileController(BaseController):
         self.router.tags += ["DocumentStore"]
 
         self.router.add_api_route(
-            "/uploadDocument",
+            "/uploadDocument/{programid}",
             self.upload_document,
             responses={200: {"model": DocumentFile}},
             methods=["POST"],
@@ -40,19 +40,17 @@ class DocumentFileController(BaseController):
 
     async def upload_document(
         self,
+        programid:int,
         file_tag: str="pdf file",
-        storage_id: int=1,
         file: UploadFile = File(...),
-        company_id: int = 1,
     ):
         try:
             # File upload on Odoo
             file_content = await file.read()
             await self.file_service.upload_document(
+                programid = programid,
                 name = file.filename,
-                backend_id=storage_id,
                 data=file_content,
-                company_id=company_id,
                 file_tag=file_tag
             )
 
@@ -60,7 +58,7 @@ class DocumentFileController(BaseController):
             await self.file_service.upload_document_minio(
                 file.file,
                 file_name = file.filename,
-                backend_id = storage_id,
+                programid = programid,
             )
 
             return {"message": "File uploaded successfully on MinIO and Odoo", "file_name": file.filename}

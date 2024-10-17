@@ -2,9 +2,9 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 from openg2p_fastapi_common.controller import BaseController
 from openg2p_portal_api.models.document_store import DocumentStore
-from ..config import Settings
 from ..services.documet_store_service import DocumentStoreService
 
+from ..config import Settings
 _config = Settings.get_config()
 
 class DocumentStoreController(BaseController):
