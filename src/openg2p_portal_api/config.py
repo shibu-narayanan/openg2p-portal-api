@@ -28,9 +28,13 @@ class Settings(AuthSettings, Settings):
     auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
-    auth_api_create_or_update_form_draft: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_create_or_update_form_draft: ApiAuthSettings = ApiAuthSettings(
+        enabled=True
+    )
     auth_api_submit_form: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_update_profile: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_summary: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_application_details: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_benefit_details: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_get_document_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)
+    auth_api_upload_document: ApiAuthSettings = ApiAuthSettings(enabled=True)

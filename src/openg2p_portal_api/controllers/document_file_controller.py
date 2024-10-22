@@ -1,21 +1,29 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, File, UploadFile
 from openg2p_fastapi_common.controller import BaseController
-from openg2p_portal_api.models.document_file import DocumentFile 
-from ..services.document_file_service import DocumentFileService  
-import logging
-_logger = logging.getLogger(__name__)
+from openg2p_fastapi_common.errors.http_exceptions import (
+    BadRequestError,
+    UnauthorizedError,
+)
+
+from openg2p_portal_api.models.document_file import DocumentFile
 
 from ..config import Settings
+from ..dependencies import JwtBearerAuth
+from ..models.credentials import AuthCredentials
+from ..services.document_file_service import DocumentFileService
+
 _config = Settings.get_config()
+
 
 class DocumentFileController(BaseController):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
         self._file_service = DocumentFileService.get_component()
 
         self.router = APIRouter()
-        self.router.tags += ["DocumentStore"]
+        self.router.tags += ["document"]
 
         self.router.add_api_route(
             "/uploadDocument/{programid}",
@@ -37,42 +45,52 @@ class DocumentFileController(BaseController):
             self._file_service = DocumentFileService.get_component()
         return self._file_service
 
-
     async def upload_document(
         self,
-        programid:int,
-        file_tag: str="pdf file",
+        programid: int,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+        file_tag: str = None,
         file: UploadFile = File(...),
     ):
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+
         try:
-            # File upload on Odoo
             file_content = await file.read()
             await self.file_service.upload_document(
-                programid = programid,
-                name = file.filename,
+                programid=programid,
+                name=file.filename,
                 data=file_content,
-                file_tag=file_tag
+                file_tag=file_tag,
             )
-
-            # File upload on MinIO
             await self.file_service.upload_document_minio(
                 file.file,
-                file_name = file.filename,
-                programid = programid,
+                file_name=file.filename,
+                programid=programid,
             )
 
-            return {"message": "File uploaded successfully on MinIO and Odoo", "file_name": file.filename}
-        
-        except Exception as e:
-            _logger.error("Error uploading document: %s", str(e))
-            raise HTTPException(status_code=400, detail=str(e))
+            return {
+                "message": "File uploaded successfully on MinIO and Odoo",
+                "file_name": file.filename,
+            }
 
+        except Exception:
+            raise BadRequestError(message="File upload failed!") from None
 
-    async def get_document_by_id(self, document_id: int):
+    async def get_document_by_id(
+        self,
+        document_id: int,
+        auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())],
+    ):
+        if not auth.partner_id:
+            raise UnauthorizedError(
+                message="Unauthorized. Partner Not Found in Registry."
+            )
+
         try:
             document = await self.file_service.get_document_by_id(document_id)
             return document
-        except Exception as e:
-            raise HTTPException(status_code=404, detail=str(e))
-
-   
+        except Exception:
+            raise BadRequestError(message="Failed to retrieve document by ID") from None

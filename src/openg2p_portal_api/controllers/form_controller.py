@@ -16,6 +16,7 @@ from ..services.program_service import ProgramService
 
 _config = Settings.get_config()
 
+
 class FormController(BaseController):
     """
     FormController handles operations related to form management for programs.
@@ -92,8 +93,6 @@ class FormController(BaseController):
                 message="Unauthorized. Partner Not Found in Registry."
             )
         return await self.form_service.get_program_form(programid, auth.partner_id)
-      
-
 
     async def create_or_update_form_draft(
         self,
@@ -154,7 +153,7 @@ class FormController(BaseController):
         program = await self.program_service.get_program_by_id_service(
             programid, auth.partner_id
         )
-        
+
         if not program.is_portal_form_mapped:
             raise BadRequestError(
                 message="Form submission is not allowed. Portal form is not mapped to this program."
@@ -163,4 +162,3 @@ class FormController(BaseController):
         return await self.form_service.submit_application_form(
             programid, programreginfo, auth.partner_id
         )
-        

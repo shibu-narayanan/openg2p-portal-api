@@ -3,7 +3,17 @@ from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithId
-from sqlalchemy import DateTime, ForeignKey, Integer, String, and_, desc, func, or_, select
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    and_,
+    desc,
+    func,
+    or_,
+    select,
+)
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 

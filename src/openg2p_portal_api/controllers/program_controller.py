@@ -58,7 +58,6 @@ class ProgramController(BaseController):
             methods=["GET"],
         )
 
-
     @property
     def program_service(self):
         if not self._program_service:
@@ -107,9 +106,8 @@ class ProgramController(BaseController):
             )
 
         return await self.program_service.get_program_by_id_service(
-            programid,auth.partner_id
+            programid, auth.partner_id
         )
-      
 
     async def get_program_summary(
         self, auth: Annotated[AuthCredentials, Depends(JwtBearerAuth())]
@@ -178,4 +176,3 @@ class ProgramController(BaseController):
                 message="Unauthorized. Partner Not Found in Registry."
             )
         return await self.program_service.get_benefit_details_service(auth.partner_id)
-

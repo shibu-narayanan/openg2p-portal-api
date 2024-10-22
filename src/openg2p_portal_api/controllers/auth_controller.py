@@ -22,6 +22,7 @@ from ..services.partner_service import PartnerService
 
 _config = Settings.get_config()
 
+
 class AuthController(AuthController):
     """
     AuthController handles authentication and profile management operations.
@@ -79,7 +80,6 @@ class AuthController(AuthController):
                 message="Unauthorized. Partner Not Found in Registry."
             )
 
-       
         partner_data = await PartnerORM.get_partner_data(auth.partner_id)
         partner_ids_data = await RegIDORM.get_all_partner_ids(partner_data.id)
         partner_bank_data = await PartnerBankORM.get_partner_banks(partner_data.id)
@@ -161,7 +161,6 @@ class AuthController(AuthController):
         try:
             await self.partner_service.update_partner_info(
                 auth.partner_id, userdata.model_dump(exclude={"id"})
-                
             )
         except IntegrityError:
             return "Could not add to registrant to program!!"
