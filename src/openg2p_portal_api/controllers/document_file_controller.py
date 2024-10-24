@@ -24,7 +24,6 @@ class DocumentFileController(BaseController):
 
         self.router = APIRouter()
         self.router.tags += ["document"]
-
         self.router.add_api_route(
             "/uploadDocument/{programid}",
             self.upload_document,
@@ -58,24 +57,10 @@ class DocumentFileController(BaseController):
             )
 
         try:
-            file_content = await file.read()
-            await self.file_service.upload_document(
-                programid=programid,
-                name=file.filename,
-                data=file_content,
-                file_tag=file_tag,
+            message = await self.file_service.upload_document(
+                file=file, programid=programid, file_tag=file_tag
             )
-            await self.file_service.upload_document_minio(
-                file.file,
-                file_name=file.filename,
-                programid=programid,
-            )
-
-            return {
-                "message": "File uploaded successfully on MinIO and Odoo",
-                "file_name": file.filename,
-            }
-
+            return message
         except Exception:
             raise BadRequestError(message="File upload failed!") from None
 
