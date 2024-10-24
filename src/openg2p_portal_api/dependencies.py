@@ -30,8 +30,12 @@ class JwtBearerAuth(JwtBearerAuth):
                 message="Unauthorized. Invalid Auth Provider. ID Type not configured."
             )
 
+        mapped_res = AuthOauthProviderORM.map_validation_response(
+            res.model_dump(), id_type_config["token_map"]
+        )
+
         partners = await RegIDORM.get_partner_by_reg_id(
-            id_type_config["g2p_id_type"], res.sub
+            id_type_config["g2p_id_type"], mapped_res.get("user_id")
         )
         if not partners:
             raise UnauthorizedError(
