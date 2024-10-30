@@ -18,7 +18,6 @@ from openg2p_portal_api.utils.file_utils import (
     compute_human_file_size,
     create_or_update_tag,
     extract_filename,
-    fullpath,
     get_company_and_backend_id_by_programid,
     get_file_id_by_slug,
     get_s3_backend_config,
@@ -53,7 +52,7 @@ class DocumentFileService(BaseService):
 
     async def upload_document(self, file, programid: int, file_tag: str):
         """
-        Uploads a document to Amazon S3 or local filesystem and saves its metadata in the database.
+        Uploads a document to MinIO or the local filesystem and saves its metadata in the database.
         """
         async with self.async_session_maker() as session:
             # Retrieve company and backend IDs
@@ -62,12 +61,17 @@ class DocumentFileService(BaseService):
                 backend_id,
             ) = await get_company_and_backend_id_by_programid(self, programid)
 
-            # Fetching the backend on the basis of backend_id
+            # Retrieve backend configuration using the backend_id
             backend = await get_s3_backend_config(self, backend_id)
-            # Determine backend type and upload document
+            # Determine backend type
             backend_type = backend.server_env_defaults.get("x_backend_type_env_default")
 
-            if backend_type == "amazon_s3" or backend_type == "filesystem":
+            if backend_type == "filesystem":
+                return {
+                    "message": "Uploading files via the filesystem is currently not supported."
+                }
+
+            if backend_type == "amazon_s3":
                 name = file.filename
                 data = await file.read()
                 if data is None:
@@ -101,21 +105,16 @@ class DocumentFileService(BaseService):
                 slugified_filename = slugify(name)
                 file_id = await get_file_id_by_slug(self)
                 final_filename = f"{slugified_filename}-{file_id}"
+
+                # Update the database with the new slugified filename relative path
                 await update_slug_relative_path(self, file_id, final_filename)
 
-                # Upload file to backend storage
-                if backend_type == "amazon_s3":
-                    return await self.S3_StorageSystem(file, final_filename, backend)
-                elif backend_type == "filesystem":
-                    full_path = fullpath(final_filename)
-                    return await self.file_StorageSystem(full_path, data)
+                # Upload the file to the backend storage
+                return await self.s3_storage_system(file, final_filename, backend)
 
-            else:
-                raise BadRequestError(
-                    message="Backend configuration not belong amazon_s3 or fileStorageSystem "
-                ) from None
+        return {"message": "Backend type should be either amazon_s3 or filesystem."}
 
-    async def S3_StorageSystem(self, file: object, file_name: str, backend: object):
+    async def s3_storage_system(self, file: object, file_name: str, backend: object):
         """
         Upload a file to an S3-compatible storage system (e.g., MinIO) using the provided backend configuration.
         """
@@ -155,25 +154,4 @@ class DocumentFileService(BaseService):
             handle_exception(e, "Client error occurred")
         except Exception as e:
             handle_exception(e, f"Unexpected error while uploading file {file_name}")
-        return {"Message": "File Upload on s3 Successfully "}
-
-    async def file_StorageSystem(self, full_path: str, data: bytes):
-        """
-        Add a file at the specified relative path in the local filesystem.
-        """
-        try:
-            # Ensure directory exists
-            dirname = os.path.dirname(full_path)
-            if not os.path.isdir(dirname):
-                os.makedirs(dirname)
-
-            # Write file data
-            with open(full_path, "wb") as my_file:
-                my_file.write(data)
-        except OSError as e:
-            handle_exception(e, "Error creating directory or writing file")
-        except TypeError as e:
-            handle_exception(e, "Invalid data type")
-        except Exception as e:
-            handle_exception(e, "Unexpected error while writing file")
-        return {"Message": "File Upload Successfully in fileStorage "}
+        return {"message": "File uploaded successfully."}

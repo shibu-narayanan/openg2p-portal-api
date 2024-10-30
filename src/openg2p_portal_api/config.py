@@ -24,10 +24,6 @@ class Settings(AuthSettings, Settings):
 
     openapi_version: str = __version__
     db_dbname: Optional[str] = "openg2pdb"
-    odoo_url: str
-    odoo_db: str
-    odoo_username: str
-    odoo_password: str
 
     auth_api_get_programs: ApiAuthSettings = ApiAuthSettings(enabled=True)
     auth_api_get_program_by_id: ApiAuthSettings = ApiAuthSettings(enabled=True)

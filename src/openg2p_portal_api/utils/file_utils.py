@@ -11,47 +11,8 @@ from openg2p_portal_api.models.orm.document_file_orm import DocumentFileORM
 from openg2p_portal_api.models.orm.document_store_orm import DocumentStoreORM
 from openg2p_portal_api.models.orm.document_tag_orm import DocumentTagORM
 from openg2p_portal_api.models.orm.program_orm import ProgramORM
-from openg2p_portal_api.utils.odoo_server_utils import get_odoo_connection
 
-# Methods: Below are used for managing file storage in the local environment.
-# - fullpath
-# - is_safe_path
-# - basedir
-
-
-def fullpath(relative_path: str) -> str:
-    """
-    Build the full path for the file and ensure it's safe.
-    """
-    base_dir = basedir()
-    print(base_dir)
-    full_path = os.path.join(base_dir, relative_path)
-    if not is_safe_path(base_dir, full_path):
-        raise BadRequestError(message=f"Access to {full_path} is forbidden.") from None
-    return full_path
-
-
-def is_safe_path(basedir: str, path: str) -> bool:
-    """Check if the path is within the base directory."""
-    return os.path.realpath(path).startswith(basedir)
-
-
-def basedir() -> str:
-    """
-    Get base directory for file storage.
-    """
-
-    try:
-        models, db, uid, password = get_odoo_connection()
-        filestore_path = models.execute_kw(
-            db, uid, password, "ir.attachment", "get_filestore_path", []
-        )
-        return os.path.join(filestore_path, "storage")
-    except Exception as e:
-        handle_exception(e, "Error retrieving base directory")
-
-
-# Methods below are used for uploading documents to Odoo and S3:
+# The methods below enable concurrent document uploads to Odoo and MinIO (S3-compatible).
 # - get_s3_backend_config
 # - create_or_update_tag
 # - get_company_and_backend_id_by_programid
