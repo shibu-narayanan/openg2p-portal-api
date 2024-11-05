@@ -18,6 +18,8 @@ classifiers = [
 dependencies = [
   "openg2p-fastapi-common",
   "openg2p-fastapi-auth",
+  "boto3",
+  "slugify",
 ]
 dynamic = ["version"]
 
