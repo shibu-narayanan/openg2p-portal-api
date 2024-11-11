@@ -19,7 +19,7 @@ dependencies = [
   "openg2p-fastapi-common",
   "openg2p-fastapi-auth",
   "boto3",
-  "slugify",
+  "python-slugify>=8.0.0",
 ]
 dynamic = ["version"]
 

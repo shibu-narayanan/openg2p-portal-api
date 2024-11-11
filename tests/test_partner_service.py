@@ -21,7 +21,7 @@ VALID_PARTNER_DATA = {
 VALID_ID_TYPE_CONFIG = {
     "g2p_id_type": "national_id",
     "company_id": 1,
-    "token_map": "name:name email:email gender:gender birthdate:birthdate phone:phone",
+    "token_map": "name:name email:email gender:gender birthdate:birthdate phone:phone user_id:user_id",
     "date_format": "%Y/%m/%d",
 }
 
