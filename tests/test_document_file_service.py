@@ -237,7 +237,7 @@ class TestDocumentFileService:
                 result["message"] == TEST_CONSTANTS["SUCCESS_MESSAGE"]
             ), "S3 upload should return success message"
             mock_s3_storage.assert_called_once_with(
-                mock_file, f"test-pdf-{mock_document.id}", mock_backend_s3
+                mock_file, str(f"test-pdf-{mock_document.id}"), mock_backend_s3
             )
             assert (
                 mock_session.add.call_count == 2

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 VALID_PARTNER_DATA = {
     "sub": "12345",
+    "user_id": "user123",
     "name": "John Middle Doe",
     "email": "john@example.com",
     "gender": "male",
