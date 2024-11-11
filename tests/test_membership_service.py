@@ -7,11 +7,6 @@ from sqlalchemy.exc import IntegrityError
 
 
 @pytest.fixture
-def membership_service():
-    return MembershipService()
-
-
-@pytest.fixture
 def mock_session():
     session = AsyncMock()
     async_session = AsyncMock()
