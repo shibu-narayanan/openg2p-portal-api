@@ -1,8 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, UploadFile
-from openg2p_fastapi_auth.dependencies import JwtBearerAuth
-from openg2p_fastapi_auth.models.credentials import AuthCredentials
 from openg2p_fastapi_common.controller import BaseController
 from openg2p_fastapi_common.errors.http_exceptions import (
     BadRequestError,
@@ -12,6 +10,8 @@ from openg2p_fastapi_common.errors.http_exceptions import (
 from openg2p_portal_api.models.document_file import DocumentFile
 
 from ..config import Settings
+from ..dependencies import JwtBearerAuth
+from ..models.credentials import AuthCredentials
 from ..services.document_file_service import DocumentFileService
 
 _config = Settings.get_config()
