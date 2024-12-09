@@ -1924,7 +1924,6 @@
         "enum": [
           "oauth2_auth_code"
         ],
-        "const": "oauth2_auth_code",
         "title": "LoginProviderTypes"
       },
       "PhoneNumber": {
