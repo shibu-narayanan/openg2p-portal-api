@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.errors.http_exceptions import BadRequestError
 from openg2p_fastapi_common.service import BaseService
-from slugify import slugify
+from slugify import slugify as python_slugify
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -102,7 +102,7 @@ class DocumentFileService(BaseService):
                 await session.refresh(new_file)
 
                 # Generate slugified filename
-                slugified_filename = slugify(name)
+                slugified_filename = python_slugify(name)
                 file_id = await get_file_id_by_slug(self)
                 final_filename = f"{slugified_filename}-{file_id}"
 

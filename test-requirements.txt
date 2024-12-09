@@ -1,3 +1,7 @@
 pytest-cov
+pytest-asyncio
+pytest
+pytest-mock
+python-slugify>=8.0.0
 git+https://github.com/openg2p/openg2p-fastapi-common@develop#subdirectory=openg2p-fastapi-common
 git+https://github.com/openg2p/openg2p-fastapi-common@develop#subdirectory=openg2p-fastapi-auth
