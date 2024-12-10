@@ -55,7 +55,10 @@ class TestDocumentFileController:
             result == expected_response
         ), "The uploaded document response does not match the expected response."
         document_controller.file_service.upload_document.assert_called_once_with(
-            file=mock_file, programid=program_id, file_tag=file_tag
+            file=mock_file,
+            programid=program_id,
+            file_tag=file_tag,
+            partner_id=auth_credentials.partner_id,
         )
 
     @pytest.mark.asyncio

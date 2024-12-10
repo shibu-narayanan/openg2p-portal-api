@@ -58,7 +58,10 @@ class DocumentFileController(BaseController):
 
         try:
             message = await self.file_service.upload_document(
-                file=file, programid=programid, file_tag=file_tag
+                file=file,
+                programid=programid,
+                file_tag=file_tag,
+                partner_id=auth.partner_id,
             )
             return message
         except Exception:

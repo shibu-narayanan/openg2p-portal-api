@@ -24,6 +24,11 @@ class DocumentFileORM(BaseORMModel):
         ForeignKey("storage_backend.id"), nullable=False, index=True
     )
     company_id: Mapped[int] = mapped_column(ForeignKey("res_partner.id"), nullable=True)
-
+    program_membership_id: Mapped[int] = mapped_column(
+        ForeignKey("g2p_program_membership.id"), nullable=True
+    )
     backend = relationship("DocumentStoreORM", back_populates="documents")
     partner = relationship("PartnerORM", back_populates="documents")
+    program_membership = relationship(
+        "ProgramMembershipORM", back_populates="document_files"
+    )

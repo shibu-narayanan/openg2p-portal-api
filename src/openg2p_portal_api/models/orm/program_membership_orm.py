@@ -7,6 +7,8 @@ from sqlalchemy import DateTime, ForeignKey, Integer, String, and_, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from openg2p_portal_api.models.orm.document_file_orm import DocumentFileORM
+
 from .program_registrant_info_orm import ProgramRegistrantInfoORM
 
 
@@ -22,6 +24,9 @@ class ProgramMembershipORM(BaseORMModel):
     program = relationship("ProgramORM", back_populates="membership")
     program_reg_info: Mapped[Optional[List["ProgramRegistrantInfoORM"]]] = relationship(
         back_populates="membership"
+    )
+    document_files: Mapped[Optional[List["DocumentFileORM"]]] = relationship(
+        back_populates="program_membership"
     )
 
     @classmethod

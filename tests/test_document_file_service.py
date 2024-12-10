@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 TEST_CONSTANTS = {
     "PROGRAM_ID": 1,
+    "PARTNER_ID": 1,
     "FILE_TAG": "test_tag",
     "DOCUMENT_NAME": "test.pdf",
     "DOCUMENT_ID": 1,
@@ -31,6 +32,8 @@ def document_service():
     context_manager = AsyncMock()
     context_manager.__aenter__.return_value = mock_session
     service.async_session_maker = MagicMock(return_value=context_manager)
+    service.membership_service = AsyncMock()
+    service.membership_service.check_and_create_mem = AsyncMock(return_value=1)
     return service
 
 
@@ -168,7 +171,10 @@ class TestDocumentFileService:
         )
 
         result = await document_service.upload_document(
-            mock_file, TEST_CONSTANTS["PROGRAM_ID"], TEST_CONSTANTS["FILE_TAG"]
+            mock_file,
+            TEST_CONSTANTS["PROGRAM_ID"],
+            TEST_CONSTANTS["FILE_TAG"],
+            partner_id=TEST_CONSTANTS["PARTNER_ID"],
         )
 
         assert (
@@ -230,7 +236,10 @@ class TestDocumentFileService:
                 "message": TEST_CONSTANTS["SUCCESS_MESSAGE"]
             }
             result = await document_service.upload_document(
-                mock_file, TEST_CONSTANTS["PROGRAM_ID"], TEST_CONSTANTS["FILE_TAG"]
+                mock_file,
+                TEST_CONSTANTS["PROGRAM_ID"],
+                TEST_CONSTANTS["FILE_TAG"],
+                partner_id=TEST_CONSTANTS["PARTNER_ID"],
             )
 
             assert (
@@ -262,7 +271,10 @@ class TestDocumentFileService:
 
         with pytest.raises(BadRequestError) as exc_info:
             await document_service.upload_document(
-                mock_file, TEST_CONSTANTS["PROGRAM_ID"], TEST_CONSTANTS["FILE_TAG"]
+                mock_file,
+                TEST_CONSTANTS["PROGRAM_ID"],
+                TEST_CONSTANTS["FILE_TAG"],
+                partner_id=TEST_CONSTANTS["PARTNER_ID"],
             )
         assert (
             str(exc_info.value.detail) == TEST_CONSTANTS["EMPTY_CONTENT_ERROR"]
@@ -289,7 +301,10 @@ class TestDocumentFileService:
         )
 
         result = await document_service.upload_document(
-            mock_file, TEST_CONSTANTS["PROGRAM_ID"], TEST_CONSTANTS["FILE_TAG"]
+            mock_file,
+            TEST_CONSTANTS["PROGRAM_ID"],
+            TEST_CONSTANTS["FILE_TAG"],
+            partner_id=TEST_CONSTANTS["PARTNER_ID"],
         )
 
         assert (
