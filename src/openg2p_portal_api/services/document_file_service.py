@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from openg2p_portal_api.exception import handle_exception
 from openg2p_portal_api.models.document_file import DocumentFile
+from openg2p_portal_api.services.membership_service import MembershipService
 from openg2p_portal_api.utils.file_utils import (
     compute_human_file_size,
     create_or_update_tag,
@@ -31,6 +32,7 @@ class DocumentFileService(BaseService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.async_session_maker = async_sessionmaker(dbengine.get())
+        self.membership_service = MembershipService.get_component()
 
     async def get_document_by_id(self, document_id: int):
         """
@@ -50,7 +52,9 @@ class DocumentFileService(BaseService):
             except SQLAlchemyError as e:
                 handle_exception(e, "Failed to retrieve document by ID")
 
-    async def upload_document(self, file, programid: int, file_tag: str):
+    async def upload_document(
+        self, file, programid: int, file_tag: str, partner_id: int
+    ):
         """
         Uploads a document to MinIO or the local filesystem and saves its metadata in the database.
         """
@@ -82,6 +86,13 @@ class DocumentFileService(BaseService):
                 if file_tag:
                     await create_or_update_tag(self, file_tag)
 
+                # Get membership_id using programid and partner_id
+                program_membership_id = (
+                    await self.membership_service.check_and_create_mem(
+                        programid=programid, partnerid=partner_id
+                    )
+                )
+
                 # Compute file metadata
                 checksum = hashlib.sha1(data).hexdigest()
                 new_file = DocumentFileORM(
@@ -94,6 +105,7 @@ class DocumentFileService(BaseService):
                     mimetype=mimetypes.guess_type(name)[0] or "",
                     company_id=company_id,
                     active=True,
+                    program_membership_id=program_membership_id,
                 )
                 extract_filename(new_file)
                 compute_human_file_size(new_file)
