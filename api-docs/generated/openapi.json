@@ -775,6 +775,119 @@
         }
       }
     },
+    "/uploadDocument/{programid}": {
+      "post": {
+        "tags": [
+          "document"
+        ],
+        "summary": "Upload Document",
+        "operationId": "upload_document_uploadDocument__programid__post",
+        "security": [
+          {
+            "JwtBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "programid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Programid"
+            }
+          },
+          {
+            "name": "file_tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "File Tag"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_uploadDocument__programid__post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getDocument/{document_id}": {
+      "get": {
+        "tags": [
+          "document"
+        ],
+        "summary": "Get Document By Id",
+        "operationId": "get_document_by_id_getDocument__document_id__get",
+        "security": [
+          {
+            "JwtBearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/profile": {
       "get": {
         "tags": [
@@ -1542,6 +1655,33 @@
         "type": "object",
         "title": "BenefitDetails"
       },
+      "Body_upload_document_uploadDocument__programid__post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_document_uploadDocument__programid__post"
+      },
+      "DocumentFile": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DocumentFile"
+      },
       "ErrorListResponse": {
         "properties": {
           "errors": {
@@ -1784,7 +1924,6 @@
         "enum": [
           "oauth2_auth_code"
         ],
-        "const": "oauth2_auth_code",
         "title": "LoginProviderTypes"
       },
       "PhoneNumber": {

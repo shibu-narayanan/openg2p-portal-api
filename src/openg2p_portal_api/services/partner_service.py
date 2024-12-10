@@ -31,15 +31,16 @@ class PartnerService(BaseService):
                 message="Invalid Auth Provider Configuration. ID Type not configured."
             )
 
+        validation = AuthOauthProviderORM.map_validation_response(
+            validation, id_type_config["token_map"]
+        )
         reg_id_res = await RegIDORM.get_partner_by_reg_id(
-            id_type_config["g2p_id_type"], validation["sub"]
+            id_type_config["g2p_id_type"], validation["user_id"]
         )
 
         if not reg_id_res:
-            id_value = validation["sub"]
-            validation = AuthOauthProviderORM.map_validation_response(
-                validation, id_type_config["token_map"]
-            )
+            id_value = validation["user_id"]
+
             name = validation.pop("name", "")
             partner_dict = {
                 "given_name": name.split(" ")[0],
